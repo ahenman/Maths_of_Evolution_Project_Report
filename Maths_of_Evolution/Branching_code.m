@@ -1,6 +1,15 @@
 %%Alice Henman%%
 %%Evolutionary Branching in Models for Symmetric and Asymmetric
 %%Competition%%
+set(0,'defaultTextFontName', 'Arial');
+set(0,'defaultaxesfontsize', 20); % 25 for 1X3, 20 for 1X2 figures
+%set(0,'defaultLegendInterpreter','latex');
+set(0,'defaultAxesTickLabelInterpreter','none');
+set(0,'defaulttextinterpreter','none');
+set(0,'defaultAxesXGrid','off');
+set(0,'defaultAxesYGrid','off');
+set(0,'defaultAxesTickDir','out');
+set(0,'defaultAxesLineWidth',1.5);
 
 %Gaussian Competition function: alpha(x-y)
 function alpha = alpha(z,sigma,beta)
@@ -10,7 +19,8 @@ end
 z=linspace(-3,3,500);
 
 %parameters
-sigma = 0.65;%width
+sigma = 0.5;%width
+sigma0 = 1;
 beta0 = 0;   %symmetrical
 beta1 = 1.5; %asymmetric
 
@@ -31,18 +41,16 @@ legend('boxoff');    %Removes box around legend
 
 %(Mexican hat) Wavelet Competition function
 function alpha1=alpha1(z,sigma,beta)
-    alpha1 = exp(sigma.^2.*beta.^2/2).*(2/(sqrt(3*sigma)*pi^(1/4)).* ...
-        (1.-(z./sigma).^2).*exp(-(z+sigma.^2.*beta).^2./(2*sigma^2)));
+    alpha1 = exp(sigma.^2.*beta.^2/2).* ...
+(1.-((z+sigma.^2.*beta)./sigma).^2).*exp(-(z+sigma.^2.*beta).^2./(2*sigma^2));
 end
-%Parameters
-beta2 = 1; %Slightly less skewed than for Gaussian
 
 figure;
-plot(z,alpha1(z,sigma,beta0),'DisplayName', sprintf('β = %.1f',beta0), ...
-    "LineWidth",1.2);
+plot(z,alpha1(z,sigma,beta0),'DisplayName', sprintf('σ_α = %.2f',sigma), ...
+    "LineWidth",1.5);
 hold on;
-plot(z,alpha1(z,sigma,beta2),'--','DisplayName', sprintf('β = %.1f',beta2), ...
-    "LineWidth",1.2);
+plot(z,alpha1(z,sigma0,beta0),'--','DisplayName', sprintf('σ_α = %.2f',sigma0), ...
+    "LineWidth",1.5);
 xlabel('Difference in trait value (x-y)');
 ylabel('Strength of competition α(x − y)');
 grid on;
@@ -51,25 +59,29 @@ ax.FontSize = 18;
 legend(FontSize=18);
 legend('boxoff');
 
-%(Mexican hat) Carrying capacity K(x)
+%Double Gaussian Carrying capacity K(x)
+function Gauss=G(sigma,x0,x)
+    Gauss = exp(-(x-x0).^2./(2*sigma^2));
+end
 
-function K=K(C1,C2,sigma1,sigma2,beta1,beta2,x)
-    K = C1*alpha(x,sigma1,beta1)-C2*alpha(x,sigma2,beta2);
+function K=K(C1,C2,sigma1,sigma2,x0,x)
+    K = C1*G(sigma1,x0,x)-C2*G(sigma2,x0,x);
 end
 
 %Parameters
-C1 = 2;
-C2 = 1;
+C1 = 2.5;%5*rand;
+C2 = 2;%C1*rand;
+sigma1 = 0.3;%0.5*rand;
+sigma2 = 0.15;%sigma1*sqrt(C2/C1)*rand;
+x0 = 1.5;%1+5*rand;
 
-x=linspace(-3,3,500);
+x=linspace(0,3,500);
 
 figure;
-plot(z,K(C1,C2,sigma,sigma,beta0,beta0,x),"LineWidth",1.2);
+plot(x,K(C1,C2,sigma1,sigma2,x0,x),"LineWidth",1.5);
 hold on;
 xlabel('Trait value x');
 ylabel('Carrying Capacity, K(x)');
 grid on;
 ax=gca;
 ax.FontSize = 18;
-
-
