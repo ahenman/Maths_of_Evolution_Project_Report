@@ -18,11 +18,11 @@ function alpha = alpha(z,sigma,beta)
     alpha = exp(sigma.^2.*beta.^2/2).*exp(-(z+sigma.^2.*beta).^2./(2.*sigma.^2));
 end
 % z represents x-y
-z=linspace(-3,3,500);
+z=linspace(-1.5,1.5,500);
 
 %parameters
-sigma = 0.5; %width
-sigma0 = 1;
+sigma = 0.5;%0.25; %width
+sigma0 = 0.5;
 beta0 = 0;   %symmetrical
 beta1 = 1.5; %asymmetric
 
@@ -54,14 +54,14 @@ figure;
 plot(z,alpha1(z,0,sigma,beta0),'DisplayName', sprintf('σ_α = %.2f',sigma), ...
     "LineWidth",1.5);
 hold on;
-plot(z,alpha1(z,0,sigma0,beta0),'--','DisplayName', sprintf('σ_α = %.2f',sigma0), ...
+plot(z,alpha1(z,0,sigma0,beta0),'r--','DisplayName', sprintf('σ_α = %.2f',sigma0), ...
     "LineWidth",1.5);
 xlabel('Difference in trait value (x-y)');
 ylabel('Strength of competition α(x − y)');
 grid on;
 ax=gca;
-ax.FontSize = 18;
-legend(FontSize=18);
+ax.FontSize = 20;
+legend(FontSize=20);
 legend('boxoff');
 
 %Double Gaussian Carrying capacity K(x)
@@ -76,30 +76,40 @@ end
 %Parameters
 C1 = 2.5;%5*rand;
 C2 = 2;%C1*rand;
-sigma1 = 0.3;%0.5*rand;
-sigma2 = 0.15;%sigma1*sqrt(C2/C1)*rand; % condition for there to be 2 humps
+sigma1 = 0.3;%0.5;%0.5*rand;
+sigma2 = 0.15;%0.35;%sigma1*sqrt(C2/C1)*rand; % condition for there to be 2 humps
 x0 = 1.5;%1+5*rand;
 
 x=linspace(0,3,500);
 
 figure;
-plot(x,K(C1,C2,sigma1,sigma2,x0,x),"LineWidth",1.5);
+plot(x,K(C1,C2,sigma1,sigma2,x0,x),'r--',"LineWidth",1.5);
 hold on;
 xlabel('Trait value x');
 ylabel('Carrying Capacity, K(x)');
 grid on;
 ax=gca;
-ax.FontSize = 18;
+ax.FontSize = 20;
+legend("boxoff");
 
 %The Mathssss
 
+%Parameters
+r=rand+0.001; %growth rate
+%stable strategies
+x2=x0+sqrt(2*sigma1^2*sigma2^2*log(C1*sigma2^2/(C2*sigma1^2))/(sigma2^2-sigma1^2));
+x3=x0-sqrt(2*sigma1^2*sigma2^2*log(C1*sigma2^2/(C2*sigma1^2))/(sigma2^2-sigma1^2));
+
+h1=plot(x0*ones(1,2),[0,1.5],'k-');
+h2=plot(x2*ones(1,2),[0,1.5],'r-.');
+h3=plot(x3*ones(1,2),[0,1.5],'b--');
+legend([h1,h2,h3], {sprintf('x_0 = %.2f', x0) sprintf('x_0+x_1 = %.2f', x2) sprintf('x_0-x_1 = %.2f', x3)});
+
 %Invasion fitness
-r=rand+0.001;
+f = @(x,y) r*(1-alpha1(y,x,sigma,beta0).*K(C1,C2,sigma1,sigma2,x0,x) ...
+    ./K(C1,C2,sigma1,sigma2,x0,y));
 
-f = @(x,y) r*(1-alpha1(y,x,sigma,beta0)*K(C1,C2,sigma1,sigma2,x0,x) ...
-    /K(C1,C2,sigma1,sigma2,x0,y));
-
-y = linspace(0,10,500);
+y = linspace(0.5,2.5,500);
 [x,y] = meshgrid(y, y);
 F = f(x,y);
 
@@ -107,19 +117,44 @@ figure
 hold on
 
 contourf(x,y,F>0,1,'LineStyle','none')
-% Add the zero-level curve
-contour(x,y,F,[0 0],'k','LineWidth',2)
-% Cosmetics
-colormap([1 1 1; 0.6 0.9 0.3]);
+contour(x,y,F,[0 0],'k','LineWidth',2) %black line for f=0
+colormap([1 1 1; 0.6 0.9 0.3]); %green for f>0 white for f<0
 xlabel('x'), ylabel('y');
-title('PIP');
+%title(['PIP for σ_{α} = ',num2str(sigma)],'Interpreter','tex');
 
-p1 = patch(NaN, NaN, [0.6 0.9 0.3]);  % green block for s>0
-p2 = patch(NaN, NaN, [1 1 1]);  % gray block for s<0
-hZero = plot(NaN, NaN, 'k-', 'LineWidth', 2);  % black line for s=0
+h1=plot(x0*ones(1,2),[0.5,y(end)],'k-');
+h2=plot(x2*ones(1,2),[0.5,y(end)],'r-.');
+h3=plot(x3*ones(1,2),[0.5,y(end)],'b--');
 
-h1=plot(x0*ones(1,2),[0,y(end)],'r--');
-
-legend([p1 p2 hZero h1], {'s>0 region', 's<0 region', 's=0 contour',sprintf('x^∗ = %.2f', x0)});
+legend(Location="northwest");
+legend([h1,h2,h3], {sprintf('x_0 = %.2f', x0) sprintf('x_0+x_1 = %.2f', x2) sprintf('x_0-x_1 = %.2f', x3)});
 axis equal
 box on
+
+%Plot to show that the conditions for branching are satisfied
+figure;
+z=linspace(0.001,1,1000); %range of sigmak1 and k2
+[sk1,sk2] = meshgrid(z,z);
+C=C1/C2; %ratio of C1/C2>1
+h = @(x,y) 3*(y.^2-x.^2)./(2.*log(C*y.^2./x.^2));
+H=h(sk1,sk2); %values of the RHS of branching condition
+[h,w]=size(H);
+for i = 2:h
+    for j = 1:i
+        if i>=j
+            H(i,j)=-3;
+        end
+    end
+end
+hlims=[-3 3]; %stops large values drowning out small variations close to 0
+imagesc(z,z,H,hlims);
+hold on;
+cmap = [abyss;autumn];
+colormap(cmap); 
+colorbar;
+colorbar('Ticks',[-1.5,0,0.5,1,1.5,2,2.5,3],...
+         'TickLabels',{'undefined','0','0.5','1','1.5','2','2.5','3+'})
+xlabel("\sigma_{k1}",'Interpreter','tex');
+ylabel("\sigma_{k2}",'Interpreter','tex');
+set(gca,'YDir','normal'); %makes axis look normal
+% title('C* colour plot on \sigma_{k1},\sigma_{k2} axis','Interpreter','tex');
