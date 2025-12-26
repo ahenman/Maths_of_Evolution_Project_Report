@@ -119,8 +119,10 @@ hold on
 contourf(x,y,F>0,1,'LineStyle','none')
 contour(x,y,F,[0 0],'k','LineWidth',2) %black line for f=0
 colormap([1 1 1; 0.6 0.9 0.3]); %green for f>0 white for f<0
-xlabel('x'), ylabel('y');
-%title(['PIP for σ_{α} = ',num2str(sigma)],'Interpreter','tex');
+xlabel('$\textsf{Resident trait value}$ ($x$)','Interpreter','latex','FontSize',17);
+ylabel('$\textsf{Mutant trait value}$ ($y$)','Interpreter','latex','FontSize',17);
+%xlabel('x'), ylabel('y');
+title(['PIP for σ_{α} = ',num2str(sigma)],'Interpreter','tex');
 
 h1=plot(x0*ones(1,2),[0.5,y(end)],'k-');
 h2=plot(x2*ones(1,2),[0.5,y(end)],'r-.');
@@ -158,3 +160,37 @@ xlabel("\sigma_{k1}",'Interpreter','tex');
 ylabel("\sigma_{k2}",'Interpreter','tex');
 set(gca,'YDir','normal'); %makes axis look normal
 % title('C* colour plot on \sigma_{k1},\sigma_{k2} axis','Interpreter','tex');
+
+%Example PIP to show branching conditions
+Y = linspace(1,1.48,500);
+X = linspace(1,2*x3-1,500);
+[x,y] = meshgrid(Y, Y);
+F = f(x,y);
+
+figure
+hold on
+
+contourf(x,y,F>0,1,'LineStyle','none')
+contour(x,y,F,[0 0],'k','LineWidth',2) %black line for f=0
+colormap([1 1 1; 0.6 0.9 0.3]); %green for f>0 white for f<0
+xlabel('$\textsf{Resident trait value}$ ($x$)','Interpreter','latex','FontSize',17);
+ylabel('$\textsf{Mutant trait value}$ ($y$)','Interpreter','latex','FontSize',17);
+%title(['PIP for σ_{α} = ',num2str(sigma)],'Interpreter','tex');
+
+h1=plot(x3*ones(1,2),[1,y(end)],'k-');
+h2=plot((x3+0.05)*ones(1,2),[1,x3-0.05],'b:');
+h3=plot((x3-0.05)*ones(1,2),[1,x3+0.05],'r-.');
+h4=plot([1,x3-0.05],(x3+0.05)*ones(1,2),'b:');
+h5=plot([1,x3+0.05],(x3-0.05)*ones(1,2),'r-.');
+h6=plot(X,2*x3-X,'--',LineWidth=1.5);
+
+plot(x3+0.05,x3-0.05,'k.','MarkerSize',18);
+plot(x3-0.05,x3+0.05,'k.','MarkerSize',18);
+text(x3+0.05,x3-0.05,"$f_{x'}(y')>0$",'Interpreter','latex','FontSize',18,'VerticalAlignment','bottom');
+text(x3-0.05,x3+0.05,"$f_{x'}(y')>0$",'Interpreter','latex','FontSize',18,'HorizontalAlignment','right','VerticalAlignment','top');
+
+%legend(Location="northwest");
+legend([h1,h2,h3,h6], {sprintf('$x^*$') sprintf("$x'$") sprintf("$y'$") sprintf("$y=2x^*-x$")},'Interpreter','latex');
+axis equal
+set(gca,'XTick',[], 'YTick', [])
+box on
