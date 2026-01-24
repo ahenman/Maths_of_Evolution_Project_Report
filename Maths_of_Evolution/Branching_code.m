@@ -13,48 +13,31 @@ set(0,'defaultAxesYGrid','off');
 set(0,'defaultAxesTickDir','out');
 set(0,'defaultAxesLineWidth',1.5);
 
-%Gaussian Competition function: alpha(x-y)
-function alpha = alpha(z,sigma,beta)
-    alpha = exp(sigma.^2.*beta.^2/2).*exp(-(z+sigma.^2.*beta).^2./(2.*sigma.^2));
-end
+%% (Mexican hat) Wavelet Competition function
+
 % z represents x-y
 z=linspace(-1.5,1.5,500);
 
 %parameters
-sigma = 0.5;%0.25; %width
+sigma = 0.25; %0.5;%width
 sigma0 = 0.5;
 beta0 = 0;   %symmetrical
 beta1 = 1.5; %asymmetric
 
-figure;
-plot(z,alpha(z,sigma,beta0),'DisplayName', sprintf('β = %.1f',beta0), ...
-    'LineWidth',1.2);
-hold on;    %Plotting 2 plots on 1
-plot(z,alpha(z,sigma,beta1),"--",'DisplayName', sprintf('β = %.1f',beta1), ...
-    'LineWidth',1.2);  %To differentiate curves in black and white
-xlabel('Difference in trait value (x-y)');
-ylabel('Strength of competition α(x − y)');
-ax=gca;
-ax.FontSize = 18;    %sets axes labels and titles size
-legend(FontSize=18); %sets legend fontsize
-legend('boxoff');    %Removes box around legend
-
-
-
-%(Mexican hat) Wavelet Competition function
-function alpha1=alpha1(x,y,sigma,beta)
-    alpha1 = exp(sigma.^2.*beta.^2/2).* ...
+function alpha=alpha(x,y,sigma,beta)
+    alpha = exp(sigma.^2.*beta.^2/2).* ...
 (1.-((x-y+sigma.^2.*beta)./sigma).^2).*exp(-(x-y+sigma.^2.*beta).^2./(2*sigma^2));
 end
 %The beta parameter can add asymmetry to the competition
 %but I'm just keeping it as beta=0 for now
-%z=x-y
 
+%z=x-y
 figure;
-plot(z,alpha1(z,0,sigma,beta0),'DisplayName', sprintf('σ_α = %.2f',sigma), ...
+%Plots of competition for 2 different widths
+plot(z,alpha(z,0,sigma,beta0),'DisplayName', sprintf('σ_α = %.2f',sigma), ...
     "LineWidth",1.5);
 hold on;
-plot(z,alpha1(z,0,sigma0,beta0),'r--','DisplayName', sprintf('σ_α = %.2f',sigma0), ...
+plot(z,alpha(z,0,sigma0,beta0),'r--','DisplayName', sprintf('σ_α = %.2f',sigma0), ...
     "LineWidth",1.5);
 xlabel('Difference in trait value (x-y)');
 ylabel('Strength of competition α(x − y)');
@@ -64,7 +47,7 @@ ax.FontSize = 20;
 legend(FontSize=20);
 legend('boxoff');
 
-%Double Gaussian Carrying capacity K(x)
+%% Double Gaussian Carrying capacity K(x)
 function Gauss=G(sigma,x0,x)
     Gauss = exp(-(x-x0).^2./(2*sigma^2));
 end
@@ -74,11 +57,11 @@ function K=K(C1,C2,sigma1,sigma2,x0,x)
 end
 
 %Parameters
-C1 = 2.5;%5*rand;
-C2 = 2;%C1*rand;
-sigma1 = 0.3;%0.5;%0.5*rand;
-sigma2 = 0.15;%0.35;%sigma1*sqrt(C2/C1)*rand; % condition for there to be 2 humps
-x0 = 1.5;%1+5*rand;
+C1 = 2.5;
+C2 = 2;
+sigma1 = 0.3;%0.5;%
+sigma2 = 0.15;%0.35;%
+x0 = 1.5;
 
 x=linspace(0,3,500);
 
@@ -92,7 +75,7 @@ ax=gca;
 ax.FontSize = 20;
 legend("boxoff");
 
-%The Mathssss
+%% The Mathssss (The PIP)
 
 %Parameters
 r=rand+0.001; %growth rate
@@ -106,7 +89,7 @@ h3=plot(x3*ones(1,2),[0,1.5],'b--');
 legend([h1,h2,h3], {sprintf('x_0 = %.2f', x0) sprintf('x_0+x_1 = %.2f', x2) sprintf('x_0-x_1 = %.2f', x3)});
 
 %Invasion fitness
-f = @(x,y) r*(1-alpha1(y,x,sigma,beta0).*K(C1,C2,sigma1,sigma2,x0,x) ...
+f = @(x,y) r*(1-alpha(y,x,sigma,beta0).*K(C1,C2,sigma1,sigma2,x0,x) ...
     ./K(C1,C2,sigma1,sigma2,x0,y));
 
 y = linspace(0.5,2.5,500);
@@ -115,13 +98,12 @@ F = f(x,y);
 
 figure
 hold on
-
+% PIP
 contourf(x,y,F>0,1,'LineStyle','none')
 contour(x,y,F,[0 0],'k','LineWidth',2) %black line for f=0
 colormap([1 1 1; 0.6 0.9 0.3]); %green for f>0 white for f<0
 xlabel('$\textsf{Resident trait value}$ ($x$)','Interpreter','latex','FontSize',17);
 ylabel('$\textsf{Mutant trait value}$ ($y$)','Interpreter','latex','FontSize',17);
-%xlabel('x'), ylabel('y');
 title(['PIP for σ_{α} = ',num2str(sigma)],'Interpreter','tex');
 
 h1=plot(x0*ones(1,2),[0.5,y(end)],'k-');
@@ -133,7 +115,7 @@ legend([h1,h2,h3], {sprintf('x_0 = %.2f', x0) sprintf('x_0+x_1 = %.2f', x2) spri
 axis equal
 box on
 
-%Plot to show that the conditions for branching are satisfied
+%% Plot to show that the conditions for branching are satisfied
 figure;
 z=linspace(0.001,1,1000); %range of sigmak1 and k2
 [sk1,sk2] = meshgrid(z,z);
@@ -144,16 +126,18 @@ H=h(sk1,sk2); %values of the RHS of branching condition
 for i = 2:h
     for j = 1:i
         if i>=j
-            H(i,j)=-3;
+            H(i,j)=-3;%makes sure all values with sigmak1<k2 are undefined
         end
     end
 end
 hlims=[-3 3]; %stops large values drowning out small variations close to 0
 imagesc(z,z,H,hlims);
 hold on;
-cmap = [abyss;autumn];
+cmap = [abyss;autumn];%makes difference between positive and negative obvious
 colormap(cmap); 
 colorbar;
+%Marks all negatives as undefined, makes it obvious that values of "3"
+%could be bigger
 colorbar('Ticks',[-1.5,0,0.5,1,1.5,2,2.5,3],...
          'TickLabels',{'undefined','0','0.5','1','1.5','2','2.5','3+'})
 xlabel("\sigma_{k1}",'Interpreter','tex');
@@ -161,7 +145,7 @@ ylabel("\sigma_{k2}",'Interpreter','tex');
 set(gca,'YDir','normal'); %makes axis look normal
 % title('C* colour plot on \sigma_{k1},\sigma_{k2} axis','Interpreter','tex');
 
-%Example PIP to show branching conditions
+%% Example PIP to show branching conditions
 Y = linspace(1,1.48,500);
 X = linspace(1,2*x3-1,500);
 [x,y] = meshgrid(Y, Y);
@@ -194,3 +178,59 @@ legend([h1,h2,h3,h6], {sprintf('$x^*$') sprintf("$x'$") sprintf("$y'$") sprintf(
 axis equal
 set(gca,'XTick',[], 'YTick', [])
 box on
+
+%% PIP with trait substitution sequence added
+
+% Parameters
+n_steps = 20; % number of mutations
+step_size = 0.15;
+initial_trait = 1;
+
+% Trait values and meshgrid
+traits = linspace(1,2,200);
+[X,Y] = meshgrid(traits, traits);
+
+% Simulate TSS
+[residents, mutants] = simulate_tss_single_mutant(initial_trait, n_steps, step_size, traits, f);
+
+% Compute PIP
+pip = f(X, Y);
+
+% Plot PIP and TSS
+figure;
+hold on;
+scatter(residents(1), residents(1), 250, 'k','filled',...
+    'MarkerEdgeColor','k');
+contour(X, Y, pip, [0 0], 'LineWidth', 2);
+
+%contour(X, Y, pip, [-10 0 10], 'LineColor', 'none', 'FaceAlpha',0.7);
+scatter(residents(1:end-1), mutants, 110,'filled'); % Mutant steps
+scatter(residents, residents, 110,'filled'); % Resident steps
+scatter(residents(end), residents(end), 180, 'red','filled',...
+    'MarkerEdgeColor','k');
+xlabel('Resident trait');
+ylabel('Mutant trait');
+title('Trait Substitution Sequence on Pairwise Invasibility Plot');
+legend('Starting trait value','PIP (zero invasion fitness)','Mutant trait','Resident trait',...
+    'final trait value','Location','northeast');
+hold off;
+
+% Compute the PIP
+function [residents, mutants] = simulate_tss_single_mutant(initial_trait, n_steps, step_size, traits, f)
+    residents = zeros(n_steps+1, 1);
+    mutants = zeros(n_steps, 1);
+    residents(1) = initial_trait;
+    for i = 1:n_steps
+        res = residents(i);
+        % Generate a single candidate mutant nearby
+        mut = res + (2*rand-1) * step_size;
+        mut = min(max(mut, traits(1)), traits(end));
+        mutants(i) = mut;
+        % If mutant is successful, update resident; else, resident doesn't change
+        if f(res, mut) > 0
+            residents(i+1) = mut;
+        else
+            residents(i+1) = res;
+        end
+    end
+end
