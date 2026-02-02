@@ -13,7 +13,7 @@ set(0,'defaultAxesYGrid','off');
 set(0,'defaultAxesTickDir','out');
 set(0,'defaultAxesLineWidth',1.5);
 
-%%fitness change by x
+%% fitness change by x
 x=linspace(0,5,500);
 xstar=1.7;
 f=(x-xstar).^2;
