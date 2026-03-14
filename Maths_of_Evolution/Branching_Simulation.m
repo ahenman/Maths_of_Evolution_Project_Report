@@ -4,7 +4,7 @@
 
 %%Default graphing layout from Dennis
 set(0,'defaultTextFontName', 'Arial');
-set(0,'defaultaxesfontsize', 20); % 25 for 1X3, 20 for 1X2 figures
+set(0,'defaultaxesfontsize', 25); % 25 for 1X3, 20 for 1X2 figures
 %set(0,'defaultLegendInterpreter','latex');
 set(0,'defaultAxesTickLabelInterpreter','none');
 set(0,'defaulttextinterpreter','none');
@@ -31,7 +31,7 @@ end
 %Parameters
 C1 = 2.5;%5*rand;
 C2 = 2;%C1*rand;
-sigma = 1;
+sigma = 1;%needs to be less than 2.950390509 for branching
 sigma1 = 3;%0.5*rand;
 sigma2 = 1.5;%sigma1*sqrt(C2/C1)*rand; % condition for there to be 2 humps
 x0 = 10;%1+5*rand;
@@ -42,68 +42,137 @@ m=0.1; %max size of mutation
 f = @(x,y) r*(1-alpha1(y,x,sigma)*K(C1,C2,sigma1,sigma2,x0,x) ...
     /K(C1,C2,sigma1,sigma2,x0,y));
 
+f2 = @(x,xb,y) r*(1-(alpha1(y,x,sigma)*(K(C1,C2,sigma1,sigma2,x0,x)-alpha1(x,xb,sigma)*K(C1,C2,sigma1,sigma2,x0,xb)) ...
+    +alpha1(y,xb,sigma)*(K(C1,C2,sigma1,sigma2,x0,xb)-alpha1(x,xb,sigma)*K(C1,C2,sigma1,sigma2,x0,x))) ...
+    /(K(C1,C2,sigma1,sigma2,x0,y)*(1-alpha1(x,xb,sigma)^2)));
+
 %Evolutionary singular strategies
 x1=x0;
 x2=x0+sqrt(2*sigma1^2*sigma2^2*log(C1*sigma2^2/(C2*sigma1^2))/(sigma2^2-sigma1^2));
 x3=x0-sqrt(2*sigma1^2*sigma2^2*log(C1*sigma2^2/(C2*sigma1^2))/(sigma2^2-sigma1^2));
 
-%Numerical Simulation
+%% Numerical Simulation
 
-numberofrealisations = 5; % number of sample paths
-T = 500; % end time for simulation
+numberofrealisations = 7; % number of sample paths
+T = 700; % end time for simulation
 xinitial = 1; %initial resident trait value
 % matrix to hold trait value at each timestep, for each realisation
 xplot = zeros(T+1,numberofrealisations);
+xbplot = zeros(T+1,numberofrealisations);
 timeplot = zeros(T+1,numberofrealisations);
 for i = 1:numberofrealisations %Run numberofrealisations simulations
     x=xinitial;
+    xb=xinitial; %resident of the branch
     time=0;
     j=1;
     xplot(j,i)=x;       %To keep track of trait values for simulation i at "time" j
+    xbplot(j,i)=xb;     %To keep track of branched trait values for simulation i at "time" j
     timeplot(j,i)=0;    %To keep track of time that trait x is obtained for simulation i
     branch = false;     %means the trait hasn't branched yet
 
     while time<T        %goes until specified time T
         %only runs for the trait value sufficiently far from x*
-        if abs(x-x2)>m && abs(x-x3)>m && branch==false
+        if branch==false
             y = x+2*m*rand-m; %mutant value is resident +-random number <= m
             if f(x,y) > 0
-                x=y; %update trait value if y has positive invasion fitness
+                if f(y,x)>0
+                    xb=y; %update branch value if mutally invasive
+                    branch=true;
+                else
+                    x=y; %update trait value if y has positive invasion fitness
+                    xb=x;
+                end
             end
-            time=time+1;%update timestep
-            %update matrices
-            j=j+1;
-            xplot(j,i)=x;
-            timeplot(j,i)=time;
         %This runs once we have got sufficiently close to "branching" point
         else
-            branch=true;
+            if rand<=0.5 %pick which subpopulation is mutating
+                y = x+2*m*rand-m;
+                if f2(x,xb,y)>0
+                    x=y;
+                end
+            else
+                yb = xb+2*m*rand-m;
+                if f2(x,xb,yb)>0
+                    xb=yb;
+                end
+            end
         end
+        time=time+1;%update timestep
+        %update matrices
+        j=j+1;
+        xplot(j,i)=x;
+        xbplot(j,i)=xb;
+        timeplot(j,i)=time;
     end
 end
 
 %Plotting
 figure;
+C = orderedcolors("gem");
+%{
+C=[0.757 0.820 0.122
+    0.596 0.788 0.169
+    0.431 0.753 0.027
+    0.318 0.694 0.020
+    0.204 0.635 0.012
+    0.224 0.580 0.027
+    0.239 0.525 0.043
+    0.122 0.455 0.051
+    0.000 0.380 0.055];
+%}
 hold on;
 for i=1:numberofrealisations
-    h=stairs(timeplot(:,i),xplot(:,i));
+    h=stairs(timeplot(:,i),xplot(:,i),'Color',C(mod(i,7)+1,:));
+    k=stairs(timeplot(:,i),xbplot(:,i),'Color',C(mod(i,7)+1,:));
     set(h,'Linewidth',2);
+    set(k,'Linewidth',2);
 end
 hold on;
 hx1=plot([0,T],x1*ones(1,2),'k-',LineWidth=2);
 hx2=plot([0,T],x2*ones(1,2),'r-.',LineWidth=2);
 hx3=plot([0,T],x3*ones(1,2),'b--',LineWidth=2);
 legend(Location="southeast")
-legend([hx1 hx2 hx3], {sprintf('x^* = %.2f', x1), sprintf('x^* = %.2f', x2), sprintf('x^* = %.2f', x3)});
-xlabel('time');
-ylabel('Resident trait value');
-axis([0 T 0 (x2+1)]);
+legend([hx2 hx1 hx3], {sprintf('x_0+x_1 = %.2f', x2), sprintf('x_0 = %.2f', x1), sprintf('x_0-x_1 = %.2f', x3)});
+%legend([hx1 hx3], {sprintf('x_0   = Repeller'), sprintf('x_0-x_1 = Branch point')});
+xlabel('Time','FontSize',25);
+ylabel('Trait value','FontSize',25);
+axis([0 T 0 max(x2+1,xinitial)]);
 set(gca,'linewidth',1.5);
 set(gca,'FontSize',20);
 grid on;
+axis square;
 
-%imagesc
-%plot of sigma1 by 2
-
-
-
+%% Branching video
+%{
+ vidfile = VideoWriter('testmovie.mp4(1)','MPEG-4');
+ vidfile.FrameRate=40;
+ open(vidfile);
+ f=figure;
+ for j = 1:T-3
+    f.Name = ['Simulation time: t = ', num2str((j-1))];
+    %Plotting
+    hold on;
+    for i=1:numberofrealisations
+        h=stairs(timeplot([j:j+3],i),xplot([j:j+3],i),'Color',C(mod(i,7)+1,:));
+        k=stairs(timeplot([j:j+3],i),xbplot([j:j+3],i),'Color',C(mod(i,7)+1,:));
+        set(h,'Linewidth',2);
+        set(k,'Linewidth',2);
+    end
+    hold on;
+    hx1=plot([0,T],x1*ones(1,2),'k-',LineWidth=2);
+    hx2=plot([0,T],x2*ones(1,2),'r-.',LineWidth=2);
+    hx3=plot([0,T],x3*ones(1,2),'b--',LineWidth=2);
+    legend(Location="southeast")
+    %legend([hx2 hx1 hx3], {sprintf('x_0+x_1 = %.2f', x2), sprintf('x_0 = %.2f', x1), sprintf('x_0-x_1 = %.2f', x3)});
+    legend([hx1 hx3], {sprintf('x_0   = repeller'), sprintf('x_0-x_1 = branch point')});
+    xlabel('time','FontSize',25);
+    ylabel('Trait value','FontSize',25);
+    axis([0 T 0 x0+1]);
+    set(gca,'linewidth',1.5);
+    set(gca,'FontSize',20);
+    grid on;
+    axis square;
+    writeVideo(vidfile, getframe(gcf));
+ end
+close(vidfile)
+%}

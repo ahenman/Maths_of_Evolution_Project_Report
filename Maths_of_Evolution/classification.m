@@ -53,7 +53,10 @@ xlabel('$\textsf{Resident trait value}$ ($x$)','Interpreter','latex','FontSize',
 ylabel('$\textsf{Mutant trait value}$ ($y$)','Interpreter','latex','FontSize',20);
 
 xline(xbar,'--','f_x(y)>0','FontSize',20,'LabelOrientation','horizontal');
-yline(xbar,':','f_x(y)<0','FontSize',20);
+yline(xbar,':','              s(x)<0','FontSize',20,'LabelHorizontalAlignment', ...
+    'left','LabelVerticalAlignment','bottom','LineWidth',2);
+yline(xbar,':','s(x)>0              ','FontSize',20, ...
+    'LabelHorizontalAlignment','right','LineWidth',2);
 
 axis equal
 box on
@@ -87,12 +90,12 @@ scatter(residents(1), residents(1), 250, 'k','filled',...
 scatter(residents(1:end-1), mutants, 110,'filled'); % Mutant steps
 scatter(residents(2:end), residents(2:end), 110,'filled'); % Resident steps
 scatter(residents(end), residents(end), 180, 'red','filled',...
-    'MarkerEdgeColor','k');
+    'MarkerEdgeColor','k', 'LineWidth',2);
 xlabel('$\textsf{Resident trait value}$ ($x$)','Interpreter','latex');
 ylabel('$\textsf{Mutant trait value}$ ($y$)','Interpreter','latex');
 %title('Trait Substitution Sequence on Pairwise Invasibility Plot');
 legend('','','Starting trait value','Mutant trait','Resident trait', ...
-    'final trait value','Location','northwest');
+    'Final trait value','Location','northwest');
 axis equal;
 hold off;
 

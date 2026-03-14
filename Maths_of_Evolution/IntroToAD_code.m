@@ -29,10 +29,10 @@ ylabel('Population (N)');
 hold off;
 
 %% Evolution of resident and mutant population in time (simple)
-x=rand; % resident trait
-y=x+0.1*rand; % mutant trait
+x=0.9;%rand; % resident trait
+y=x+0.01; % mutant trait
 N0=x/d;
-tspan = [0 100];
+tspan = [0 3000];
 
 %ODEs for time evolution of population
 function Ndot = Ndot(N,M,x,d)
@@ -50,14 +50,25 @@ ddt = zeros(2,1); % Initialize the derivative vector
     ddt(1) = Ndot(N,M,x,d); % resident population
     ddt(2) = Mdot(N,M,y,d); % mutant population density
 end
-n0 = [N0,0.1]; %initial values, mutant population initially small
+n0 = [N0,0.001]; %initial values, mutant population initially small
 [t,n] = ode45(@(t,n) odefcn(n,x,y,d) , tspan, n0);
-
+%{
+y2=y+0.02;
+N0=n(end,2);
+n0 = [N0,0.001]; %initial values, mutant population initially small
+[t2,n2] = ode45(@(t2,n2) odefcn(n2,x,y,d) , [500000 600000], n0);
+%}
 figure;
 plot(t,n(:,1),'-' ,t,n(:,2),'--',LineWidth=2);
+hold on;
+%plot(t2,n2(:,1),'r--' ,t2,n2(:,2),'g:',LineWidth=2);
+
 xlabel('Time');
 ylabel('Population density');
-legend(sprintf('N_x, x = %.2f',x),sprintf('N_y, y = %.2f',y),'Location','northwest');
+%legend(sprintf('N_x, x = %.2f',x),sprintf('N_y, y = %.2f',y),'Location','northwest');
+legend(sprintf('Resident population, x = %.2f',x),sprintf('Mutant Population, y = %.2f',y),'Location','east');
+%legend(sprintf('Resident population, x = %.2f',x),sprintf('Mutant Population, y = %.2f',y), ...
+%    sprintf('New Resident Population, x = %.2f',y),sprintf('Second Mutant Population, y = %.2f',y2),'Location','east');
 
 %% PIP (simple)
 
@@ -162,13 +173,13 @@ plot(t,N);
 hold on;
 
 plot(t,r./d(r)*ones(size(t)),'--');
-title('dN/dt = N(r-Nd)')
+title('dN/dt = N(r-Nd)');
 xlabel('Time');
 ylabel('Population (N)');
 hold off;
 
 %% Evolution of resident and mutant population in time (d varying)
-x=rand; % resident trait
+x=2*rand; % resident trait
 y=x+0.2*rand-0.1; % mutant trait
 N0=x/d(x);
 tspan = [0 200];
@@ -213,18 +224,20 @@ hold on
 contourf(X,Y,F>0,1,'LineStyle','none')
 contour(X,Y,F,[0 0],'k','LineWidth',2) %black line for f=0
 colormap([1 1 1; 0.6 0.9 0.3]); %green for f>0 white for f<0
-xlabel('$\textsf{Resident trait value}$ ($x$)','Interpreter','latex','FontSize',20);
-ylabel('$\textsf{Mutant trait value}$ ($y$)','Interpreter','latex','FontSize',20);
+xlabel('$\textsf{Resident trait value}$ ($x$)','Interpreter','latex');
+ylabel('$\textsf{Mutant trait value}$ ($y$)','Interpreter','latex');
 p1 = patch(NaN, NaN, [0.6 0.9 0.3]);  % green block for s>0
 p2 = patch(NaN, NaN, [1 1 1]);  % white block for s<0
 hZero = plot(NaN, NaN, 'k-', 'LineWidth', 2);  % black line for s=0
-h=plot(sqrt(b/a)*ones(1,2),[0,Y(end)],'r--');
+%h=plot(sqrt(b/a)*ones(1,2),[0,Y(end)],'r--','LineWidth',2);
 
-xline(sqrt(b/a),'--','f_x(y)<0','FontSize',20,'LabelOrientation','horizontal');
-yline(sqrt(b/a),':','f_x(y)>0','FontSize',20);
+xline(sqrt(b/a),'--','f_x(y)<0','FontSize',20,'LabelOrientation','horizontal','LineWidth',2);
+yline(sqrt(b/a),':','s(x)<0','FontSize',20,'LineWidth',2, ...
+    'LabelHorizontalAlignment','center');
+yline(sqrt(b/a),':','    s(x)>0','FontSize',20,'LineWidth',2, ...
+    'LabelHorizontalAlignment','left', 'LabelVerticalAlignment','bottom');
 
-%legend([p1 p2 hZero h], {'f_x(y)>0 region', 'f_x(y)<0 region', 'f_x(y)=0 contour','x*=1'});
-%title(['PIP for σ_{α} = ',num2str(sigma)],'Interpreter','tex');
+%legend([p1 p2 hZero h], {'f_x(y)>0 region', 'f_x(y)<0 region', 'f_x(y)=0 contour','x*'});
 
 axis equal
 box on
@@ -232,10 +245,19 @@ box on
 %% PIP with trait substitution sequence added (d varying)
 
 % Parameters
-n_steps = 30; % number of mutations
+n_steps = 25; % number of mutations
 step_size = 0.15;
-initial_trait = 0.2;%x;
-
+initial_trait = 0.3;%x;
+%Colour scheme
+G=[0.757 0.820 0.122
+    0.596 0.788 0.169
+    0.431 0.753 0.027
+    0.318 0.694 0.020
+    0.204 0.635 0.012
+    0.224 0.580 0.027
+    0.239 0.525 0.043
+    0.122 0.455 0.051
+    0.000 0.380 0.055];
 % Trait values and meshgrid
 traits = linspace(0,2,200);
 [X,Y] = meshgrid(traits, traits);
@@ -253,16 +275,21 @@ contourf(X,Y,F>0,1,'LineStyle','none');
 contour(X,Y,F,[0 0],'k','LineWidth',2); %black line for f=0
 colormap([1 1 1; 0.6 0.9 0.3]); %green for f>0 white for f<0
 
+%xline(sqrt(b/a),'--','f_x(y)<0','LabelOrientation','horizontal','LineWidth',2);
+%yline(sqrt(b/a),':','f_x(y)>0','LineWidth',2);
+
 scatter(residents(1), residents(1), 250, 'k','filled',...
     'MarkerEdgeColor','k'); %plots initial value in black
 scatter(residents(1:end-1), mutants, 110,'filled'); % Mutant steps
 scatter(residents(2:end), residents(2:end), 110,'filled'); % Resident steps
 scatter(residents(end), residents(end), 180, 'red','filled',...
-    'MarkerEdgeColor','k');
+    'MarkerEdgeColor','k', 'LineWidth',2);
+scatter(residents(1), residents(1), 250, 'k','filled',...
+    'MarkerEdgeColor','k'); %plots initial value in black
 xlabel('$\textsf{Resident trait value}$ ($x$)','Interpreter','latex');
 ylabel('$\textsf{Mutant trait value}$ ($y$)','Interpreter','latex');
 %title('Trait Substitution Sequence on Pairwise Invasibility Plot');
 legend('','','Starting trait value','Mutant trait','Resident trait', ...
-    'final trait value','Location','northwest');
+    'Final trait value','','Location','northwest');
 axis equal;
 hold off;

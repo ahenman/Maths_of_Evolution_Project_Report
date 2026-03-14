@@ -4,7 +4,7 @@
 
 %%Default graphing layout from Dennis
 set(0,'defaultTextFontName', 'Arial');
-set(0,'defaultaxesfontsize', 20); % 25 for 1X3, 20 for 1X2 figures
+set(0,'defaultaxesfontsize', 25); % 25 for 1X3, 20 for 1X2 figures
 %set(0,'defaultLegendInterpreter','latex');
 set(0,'defaultAxesTickLabelInterpreter','none');
 set(0,'defaulttextinterpreter','none');
@@ -148,8 +148,12 @@ set(gca,'YDir','normal'); %makes axis look normal
 %% Example PIP to show branching conditions
 Y = linspace(1,1.48,500);
 X = linspace(1,2*x3-1,500);
+%Y = linspace(x3-0.1,x3+0.1,500);
 [x,y] = meshgrid(Y, Y);
 F = f(x,y);
+
+a=x3-0.05;
+b=x3+0.05;
 
 figure
 hold on
@@ -157,80 +161,25 @@ hold on
 contourf(x,y,F>0,1,'LineStyle','none')
 contour(x,y,F,[0 0],'k','LineWidth',2) %black line for f=0
 colormap([1 1 1; 0.6 0.9 0.3]); %green for f>0 white for f<0
-xlabel('$\textsf{Resident trait value}$ ($x$)','Interpreter','latex','FontSize',17);
-ylabel('$\textsf{Mutant trait value}$ ($y$)','Interpreter','latex','FontSize',17);
+xlabel('$\textsf{Resident trait value}$ ($x$)','Interpreter','latex','FontSize',25);
+ylabel('$\textsf{Mutant trait value}$ ($y$)','Interpreter','latex','FontSize',25);
 %title(['PIP for σ_{α} = ',num2str(sigma)],'Interpreter','tex');
 
-h1=plot(x3*ones(1,2),[1,y(end)],'k-');
-h2=plot((x3+0.05)*ones(1,2),[1,x3-0.05],'b:');
-h3=plot((x3-0.05)*ones(1,2),[1,x3+0.05],'r-.');
-h4=plot([1,x3-0.05],(x3+0.05)*ones(1,2),'b:');
-h5=plot([1,x3+0.05],(x3-0.05)*ones(1,2),'r-.');
-h6=plot(X,2*x3-X,'--',LineWidth=1.5);
+h1=plot(x3*ones(1,2),[x(1),y(end)],'m-');
+h2=plot((b)*ones(1,2),[x(1),a],'b:');
+h3=plot((a)*ones(1,2),[x(1),b],'r-.');
+h4=plot([x(1),a],(b)*ones(1,2),'b:');
+h5=plot([x(1),b],(a)*ones(1,2),'r-.');
+h6=plot(X,2*x3-X,'--',LineWidth=3);
 
-plot(x3+0.05,x3-0.05,'k.','MarkerSize',18);
-plot(x3-0.05,x3+0.05,'k.','MarkerSize',18);
-text(x3+0.05,x3-0.05,"$f_{x'}(y')>0$",'Interpreter','latex','FontSize',18,'VerticalAlignment','bottom');
-text(x3-0.05,x3+0.05,"$f_{x'}(y')>0$",'Interpreter','latex','FontSize',18,'HorizontalAlignment','right','VerticalAlignment','top');
+plot(b,a,'k.','MarkerSize',25);
+plot(a,b,'k.','MarkerSize',25);
+text(b,a,"f_{b}(a)>0",'Interpreter','tex','FontSize',25,'VerticalAlignment','bottom');
+text(a,b,"f_{a}(b)>0",'Interpreter','tex','FontSize',25,'HorizontalAlignment','right','VerticalAlignment','top');
 
 %legend(Location="northwest");
-legend([h1,h2,h3,h6], {sprintf('$x^*$') sprintf("$x'$") sprintf("$y'$") sprintf("$y=2x^*-x$")},'Interpreter','latex');
+legend([h1,h6], {sprintf('x^*') sprintf("y=2x^*-x")},'Interpreter','tex');
 axis equal
-set(gca,'XTick',[], 'YTick', [])
+set(gca,'XTick',[a,x3,b], 'YTick', [a,b]);
+set(gca,'XTickLabel',["a","x*","b"], 'YTickLabel', ["a","b"]);
 box on
-
-%% PIP with trait substitution sequence added
-
-% Parameters
-n_steps = 20; % number of mutations
-step_size = 0.15;
-initial_trait = 1;
-
-% Trait values and meshgrid
-traits = linspace(1,2,200);
-[X,Y] = meshgrid(traits, traits);
-
-% Simulate TSS
-[residents, mutants] = simulate_tss_single_mutant(initial_trait, n_steps, step_size, traits, f);
-
-% Compute PIP
-pip = f(X, Y);
-
-% Plot PIP and TSS
-figure;
-hold on;
-scatter(residents(1), residents(1), 250, 'k','filled',...
-    'MarkerEdgeColor','k');
-contour(X, Y, pip, [0 0], 'LineWidth', 2);
-
-%contour(X, Y, pip, [-10 0 10], 'LineColor', 'none', 'FaceAlpha',0.7);
-scatter(residents(1:end-1), mutants, 110,'filled'); % Mutant steps
-scatter(residents, residents, 110,'filled'); % Resident steps
-scatter(residents(end), residents(end), 180, 'red','filled',...
-    'MarkerEdgeColor','k');
-xlabel('Resident trait');
-ylabel('Mutant trait');
-title('Trait Substitution Sequence on Pairwise Invasibility Plot');
-legend('Starting trait value','PIP (zero invasion fitness)','Mutant trait','Resident trait',...
-    'final trait value','Location','northeast');
-hold off;
-
-% Compute the PIP
-function [residents, mutants] = simulate_tss_single_mutant(initial_trait, n_steps, step_size, traits, f)
-    residents = zeros(n_steps+1, 1);
-    mutants = zeros(n_steps, 1);
-    residents(1) = initial_trait;
-    for i = 1:n_steps
-        res = residents(i);
-        % Generate a single candidate mutant nearby
-        mut = res + (2*rand-1) * step_size;
-        mut = min(max(mut, traits(1)), traits(end));
-        mutants(i) = mut;
-        % If mutant is successful, update resident; else, resident doesn't change
-        if f(res, mut) > 0
-            residents(i+1) = mut;
-        else
-            residents(i+1) = res;
-        end
-    end
-end

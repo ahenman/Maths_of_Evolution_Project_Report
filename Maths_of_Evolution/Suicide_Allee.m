@@ -63,10 +63,10 @@ end
 function Kfun= Kfun(e,b)
 Kfun = (erf(e-b)+1)/2;
 end
-x=4.5; % resident trait
-y=x+0.1*rand; % mutant trait
+x=5; % resident trait
+y=x+0.001*rand; % mutant trait
 N0=Kfun(x,b);
-tspan = [0 5000000];
+tspan = linspace(0,5000000,10000000);%[0 5000000];
 
 %ODEs for time evolution of population
 function Xdot = Xdot(N,M,x,r,a,b)
@@ -96,7 +96,7 @@ plot(t,abs(n(:,1)),'-' ,t,abs(n(:,2)),'--',LineWidth=2.5);
 %plot(T,abs(N(:,1)),'-' ,T,abs(N(:,2)),'--',LineWidth=2.5);
 xlabel('Time');
 ylabel('Population density');
-legend(sprintf('N_x, x = %.2f',x),sprintf('N_y, y = %.2f',y),'Location','northwest');
+legend(sprintf('N_x, x = %.4f',x),sprintf('N_y, y = %.4f',y),'Location','northwest');
 
 %% PIP
 
@@ -184,29 +184,3 @@ function [residents, mutants] = simulate_tss_single_mutant(initial_trait, n_step
         end
     end
 end
-
-%% Resource consumer model
-tspan=[0 50];
-function dNdt = dNdt(N,R,d,f,s)
-    dNdt = N*(f*s*R-d);
-end
-
-function dRdt = dRdt(N,R,a,b,c,s)
-    dRdt = R*(a*R/(1+R)-b-c*R-s*N);
-end
-
-function ddt = odefcn1(n,a,b,c,d,f,s)
-N = n(1);
-R = n(2);
-ddt = zeros(2,1); % Initialize the derivative vector
-    ddt(1) = dNdt(N,R,d,f,s); % resident population
-    ddt(2) = dRdt(N,R,a,b,c,s); % mutant population density
-end
-n0 = [5,1]; %initial values, mutant population initially small
-[t,n] = ode45(@(t,n) odefcn1(n,a,b,c,d,f,s) , tspan, n0);
-
-figure;
-plot(n(:,1),n(:,2),LineWidth=2.5);
-xlabel('Consumer population density (N)');
-ylabel('Resource population density (R)');
-%legend(sprintf('N_x, x = %.2f',x),sprintf('N_y, y = %.2f',y),'Location','northwest');
