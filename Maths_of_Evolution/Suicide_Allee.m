@@ -63,10 +63,10 @@ end
 function Kfun= Kfun(e,b)
 Kfun = (erf(e-b)+1)/2;
 end
-x=5; % resident trait
-y=x+0.001*rand; % mutant trait
+x=6; % resident trait
+y=x+0.1*rand; % mutant trait
 N0=Kfun(x,b);
-tspan = linspace(0,5000000,10000000);%[0 5000000];
+tspan = [0 500000];%linspace(0,5000000,10000000);%
 
 %ODEs for time evolution of population
 function Xdot = Xdot(N,M,x,r,a,b)
@@ -85,8 +85,8 @@ ddt = zeros(2,1); % Initialize the derivative vector
     ddt(2) = Ydot(N,M,y,r,a,b); % mutant population density
 end
 n0 = [N0,0.01]; %initial values, mutant population initially small
-[t,n] = ode45(@(t,n) odefcn(n,x,y,r,a,b) , tspan, n0);
-%[t1,n1] = ode45(@(t1,n1) odefcn(n1,x,y,r,a,b) , [40001 50000], [n(end,1) n(end,2)-0.005]);
+[t,n] = ode45(@(t,n) odefcn(n,x,y,r,a,b) , tspan, n0); %both 45 and 15s give "natural" suicide for high enough x
+%[t1,n1] = ode15s(@(t1,n1) odefcn(n1,x,y,r,a,b) , [500000000 1000000000], [n(end,1) n(end,2)-0.005]);
 
 %T=[t;t1];
 %N=abs([n;n1]);
@@ -96,8 +96,8 @@ plot(t,abs(n(:,1)),'-' ,t,abs(n(:,2)),'--',LineWidth=2.5);
 %plot(T,abs(N(:,1)),'-' ,T,abs(N(:,2)),'--',LineWidth=2.5);
 xlabel('Time');
 ylabel('Population density');
-legend(sprintf('N_x, x = %.4f',x),sprintf('N_y, y = %.4f',y),'Location','northwest');
-
+legend(sprintf('N_x, x = %.2f',x),sprintf('N_y, y = %.2f',y),'Location','northeast');
+%{
 %% PIP
 
 %Invasion fitness
@@ -184,3 +184,4 @@ function [residents, mutants] = simulate_tss_single_mutant(initial_trait, n_step
         end
     end
 end
+%}
