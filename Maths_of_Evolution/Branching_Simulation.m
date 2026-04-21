@@ -38,6 +38,11 @@ x0 = 10;%1+5*rand;
 r=rand+0.001;
 m=0.1; %max size of mutation
 
+%Equilibria
+N1 = @(x) K(C1,C2,sigma1,sigma2,x0,x); %1 resident equilibrium
+Nfun = @(x,xb) (K(C1,C2,sigma1,sigma2,x0,x)-alpha1(x,xb,sigma).*K(C1,C2,sigma1,sigma2,x0,xb))./(1-alpha1(x,xb,sigma).^2);
+Nbfun = @(x,xb) (K(C1,C2,sigma1,sigma2,x0,xb)-alpha1(x,xb,sigma).*K(C1,C2,sigma1,sigma2,x0,x))./(1-alpha1(x,xb,sigma).^2);
+
 %Invasion fitness
 f = @(x,y) r*(1-alpha1(y,x,sigma)*K(C1,C2,sigma1,sigma2,x0,x) ...
     /K(C1,C2,sigma1,sigma2,x0,y));
@@ -58,15 +63,21 @@ T = 700; % end time for simulation
 xinitial = 1; %initial resident trait value
 % matrix to hold trait value at each timestep, for each realisation
 xplot = zeros(T+1,numberofrealisations);
+Nplot = zeros(T+1,numberofrealisations);
+Nbplot = zeros(T+1,numberofrealisations);
 xbplot = zeros(T+1,numberofrealisations);
 timeplot = zeros(T+1,numberofrealisations);
 for i = 1:numberofrealisations %Run numberofrealisations simulations
     x=xinitial;
     xb=xinitial; %resident of the branch
+    N=N1(x);
+    Nb=0;        %initially there is no branch population
     time=0;
     j=1;
     xplot(j,i)=x;       %To keep track of trait values for simulation i at "time" j
     xbplot(j,i)=xb;     %To keep track of branched trait values for simulation i at "time" j
+    Nplot(j,i)=N;       %To keep track of population density for simulation i at "time" j
+    Nbplot(j,i)=Nb;
     timeplot(j,i)=0;    %To keep track of time that trait x is obtained for simulation i
     branch = false;     %means the trait hasn't branched yet
 
@@ -77,10 +88,13 @@ for i = 1:numberofrealisations %Run numberofrealisations simulations
             if f(x,y) > 0
                 if f(y,x)>0
                     xb=y; %update branch value if mutally invasive
+                    N=Nfun(x,xb);  %branch point affects both equilibrium densitities
+                    Nb=Nbfun(x,xb);
                     branch=true;
                 else
                     x=y; %update trait value if y has positive invasion fitness
                     xb=x;
+                    N=N1(x); %update new population         
                 end
             end
         %This runs once we have got sufficiently close to "branching" point
@@ -89,11 +103,15 @@ for i = 1:numberofrealisations %Run numberofrealisations simulations
                 y = x+2*m*rand-m;
                 if f2(x,xb,y)>0
                     x=y;
+                    N=Nfun(x,xb);
+                    Nb=Nbfun(x,xb);
                 end
             else
                 yb = xb+2*m*rand-m;
                 if f2(x,xb,yb)>0
                     xb=yb;
+                    N=Nfun(x,xb);
+                    Nb=Nbfun(x,xb);
                 end
             end
         end
@@ -102,6 +120,8 @@ for i = 1:numberofrealisations %Run numberofrealisations simulations
         j=j+1;
         xplot(j,i)=x;
         xbplot(j,i)=xb;
+        Nplot(j,i)=N;
+        Nbplot(j,i)=Nb;
         timeplot(j,i)=time;
     end
 end
@@ -136,6 +156,24 @@ legend([hx2 hx1 hx3], {sprintf('x_0+x_1 = %.2f', x2), sprintf('x_0 = %.2f', x1),
 %legend([hx1 hx3], {sprintf('x_0   = Repeller'), sprintf('x_0-x_1 = Branch point')});
 xlabel('Time','FontSize',25);
 ylabel('Trait value','FontSize',25);
+axis([0 T 0 max(x2+1,xinitial)]);
+set(gca,'linewidth',1.5);
+set(gca,'FontSize',20);
+grid on;
+axis square;
+
+figure;
+Cb = orderedcolors("glow");
+hold on;
+for i=1:numberofrealisations
+    h=stairs(timeplot(:,i),Nplot(:,i),'Color',C(mod(i,7)+1,:));
+    k=stairs(timeplot(:,i),Nbplot(:,i),'Color',Cb(mod(i,7)+1,:));
+    set(h,'Linewidth',2);
+    set(k,'Linewidth',2);
+end
+hold on;
+xlabel('Time','FontSize',25);
+ylabel('Population Density','FontSize',25);
 axis([0 T 0 max(x2+1,xinitial)]);
 set(gca,'linewidth',1.5);
 set(gca,'FontSize',20);

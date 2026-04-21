@@ -1,6 +1,5 @@
 %%Alice Henman%%
 %%Chapter 3 Evolutionary Suicide%%
-%%Classifying singular strategies%%
 
 %%Default graphing layout from Dennis
 set(0,'defaultTextFontName', 'Arial');

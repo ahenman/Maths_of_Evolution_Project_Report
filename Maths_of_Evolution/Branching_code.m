@@ -115,7 +115,7 @@ legend([h1,h2,h3], {sprintf('x_0 = %.2f', x0) sprintf('x_0+x_1 = %.2f', x2) spri
 axis equal
 box on
 
-%% Plot to show that the conditions for branching are satisfied
+%% Colour plot to show that the conditions for branching are satisfied
 figure;
 z=linspace(0.001,1,1000); %range of sigmak1 and k2
 [sk1,sk2] = meshgrid(z,z);
