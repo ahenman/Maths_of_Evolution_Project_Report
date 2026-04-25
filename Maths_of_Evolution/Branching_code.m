@@ -4,7 +4,7 @@
 
 %%Default graphing layout from Dennis
 set(0,'defaultTextFontName', 'Arial');
-set(0,'defaultaxesfontsize', 25); % 25 for 1X3, 20 for 1X2 figures
+set(0,'defaultaxesfontsize', 20); % 25 for 1X3, 20 for 1X2 figures
 %set(0,'defaultLegendInterpreter','latex');
 set(0,'defaultAxesTickLabelInterpreter','none');
 set(0,'defaulttextinterpreter','none');
@@ -161,25 +161,25 @@ hold on
 contourf(x,y,F>0,1,'LineStyle','none')
 contour(x,y,F,[0 0],'k','LineWidth',2) %black line for f=0
 colormap([1 1 1; 0.6 0.9 0.3]); %green for f>0 white for f<0
-xlabel('$\textsf{Resident trait value}$ ($x$)','Interpreter','latex','FontSize',25);
-ylabel('$\textsf{Mutant trait value}$ ($y$)','Interpreter','latex','FontSize',25);
+xlabel('$\textsf{Resident trait value}$ ($x$)','Interpreter','latex','FontSize',20);
+ylabel('$\textsf{Mutant trait value}$ ($y$)','Interpreter','latex','FontSize',20);
 %title(['PIP for σ_{α} = ',num2str(sigma)],'Interpreter','tex');
 
-h1=plot(x3*ones(1,2),[x(1),y(end)],'m-');
-h2=plot((b)*ones(1,2),[x(1),a],'b:');
-h3=plot((a)*ones(1,2),[x(1),b],'r-.');
-h4=plot([x(1),a],(b)*ones(1,2),'b:');
-h5=plot([x(1),b],(a)*ones(1,2),'r-.');
-h6=plot(X,2*x3-X,'--',LineWidth=3);
+h1=plot(x3*ones(1,2),[x(1),y(end)],'m-',LineWidth=2);
+h2=plot((b)*ones(1,2),[x(1),a],'b:',LineWidth=2);
+h3=plot((a)*ones(1,2),[x(1),b],'r-.',LineWidth=2);
+h4=plot([x(1),a],(b)*ones(1,2),'b:',LineWidth=2);
+h5=plot([x(1),b],(a)*ones(1,2),'r-.',LineWidth=2);
+h6=plot(X,2*x3-X,'--',LineWidth=2);
 
-plot(b,a,'k.','MarkerSize',25);
-plot(a,b,'k.','MarkerSize',25);
-text(b,a,"f_{b}(a)>0",'Interpreter','tex','FontSize',25,'VerticalAlignment','bottom');
-text(a,b,"f_{a}(b)>0",'Interpreter','tex','FontSize',25,'HorizontalAlignment','right','VerticalAlignment','top');
+plot(b,a,'k.','MarkerSize',20);
+plot(a,b,'k.','MarkerSize',20);
+text(b,a,"f_{y'}(x')>0",'Interpreter','tex','FontSize',20,'VerticalAlignment','bottom');
+text(a,b,"f_{x'}(y')>0",'Interpreter','tex','FontSize',20,'HorizontalAlignment','right','VerticalAlignment','top');
 
 %legend(Location="northwest");
 legend([h1,h6], {sprintf('x^*') sprintf("y=2x^*-x")},'Interpreter','tex');
 axis equal
 set(gca,'XTick',[a,x3,b], 'YTick', [a,b]);
-set(gca,'XTickLabel',["a","x*","b"], 'YTickLabel', ["a","b"]);
+set(gca,'XTickLabel',["x'","x*","y'"], 'YTickLabel', ["x'","y'"]);
 box on

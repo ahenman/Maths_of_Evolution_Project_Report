@@ -99,7 +99,7 @@ for i = 1:numberofrealisations %Run numberofrealisations simulations
             end
         %This runs once we have got sufficiently close to "branching" point
         else
-            if rand<=0.5 %pick which subpopulation is mutating
+            if rand<=N/(N+Nb) %pick which subpopulation is mutating weighted by its frequency in the population
                 y = x+2*m*rand-m;
                 if f2(x,xb,y)>0
                     x=y;
@@ -147,6 +147,7 @@ for i=1:numberofrealisations
     set(h,'Linewidth',2);
     set(k,'Linewidth',2);
 end
+mean(mean(abs(xplot-xbplot)))
 hold on;
 hx1=plot([0,T],x1*ones(1,2),'k-',LineWidth=2);
 hx2=plot([0,T],x2*ones(1,2),'r-.',LineWidth=2);
@@ -174,7 +175,6 @@ end
 hold on;
 xlabel('Time','FontSize',25);
 ylabel('Population Density','FontSize',25);
-axis([0 T 0 max(x2+1,xinitial)]);
 set(gca,'linewidth',1.5);
 set(gca,'FontSize',20);
 grid on;
