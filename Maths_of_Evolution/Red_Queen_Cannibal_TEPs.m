@@ -88,6 +88,8 @@ function secgrad = secgrad(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
     secgrad=(f*(N0*a10dot+N.*a21dot-h1dot.*(N0*a10+a11.*N).^2)-(1+h1.*(a10*N0+a11.*N)).*a12dot.*N)./(1+h1.*(a10*N0+a11.*N)).^2;
 end
 
+sx = @(x) secgrad(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
+
 function fyy = fyy(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
     a10=A0(Ao,x0,a,x);
     a11=Aij(A,xbar,xunder,b,g,d,p,x,x);
@@ -360,12 +362,12 @@ S1 = zeros(size(X1));
 S2 = zeros(size(X2));
 
 %using the limit of dN1/dt dN2/dt to find N to find the selection gradient
-%
+%{
 tspan = [0 4000];
 
 opts = optimset('Display','off', 'TolX',1e-12, 'TolFun',1e-12, 'MaxIter',2000, 'MaxFunEvals',10000);
 %For upper half plane only
-%
+%{
 k=0;
 for i = 1:size(X2,1)
     for j = 1:i
@@ -626,7 +628,7 @@ function S = sx12_fun(X,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A,opts,tspan)
     ];
 end
 %% Tests location and type of singular strategies
-
+%{
 %guesses
 x1=0.02977624985;
 x2=1.087314801;
@@ -649,6 +651,7 @@ tspan = [0 5000];
 opts = optimset('Display','off');
 numberofrealisations = 1; % number of sample paths
 T = 4000; % end time for simulation
+xstar=roots(chebfun(sx,[1e-6 5]));
 xinitial = xstar(end); %branch point
 N1initial = Nbar(xinitial,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)/2;
 N2initial = N1initial;
@@ -738,6 +741,12 @@ for i = 1:numberofrealisations %Run numberofrealisations simulations
                         N2=N1/2;
                         N1=N2;
                     end
+                end
+                if N1<0
+                    N1=0;
+                end
+                if N2<0
+                    N2=0;
                 end
                 %only need to check N if there's been a trait substitution
             end

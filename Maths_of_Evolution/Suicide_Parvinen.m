@@ -84,28 +84,28 @@ plot(abs(n15(:,1)),abs(n15(:,2)),LineWidth=2.5,Color=C(5,:));
 plot(abs(n16(:,1)),abs(n16(:,2)),LineWidth=2.5,Color=C(4,:));
 plot(abs(n17(:,1)),abs(n17(:,2)),LineWidth=2.5,Color=C(7,:));
 %equilibria:
-plot(0,0,'.',MarkerSize=20);
-plot(0,R1,'.',MarkerSize=20);
-plot(0,R2,'.',MarkerSize=20);
-plot(Nbar,Rbar,'.',MarkerSize=20);
+plot(0,0,'.',MarkerSize=30);
+plot(0,R1,'o',MarkerSize=10);
+plot(0,R2,'o',MarkerSize=10);
+plot(Nbar,Rbar,'.',MarkerSize=30);
 
-text(0,R1,'\boldmath$(0,R_1)$',Interpreter='latex',FontSize=15,VerticalAlignment='bottom');
-text(0,R2,'\boldmath$(0,R_2)$',Interpreter='latex',FontSize=15);
-text(Nbar,Rbar,'\boldmath$(\bar{N},\bar{R})$',Interpreter='latex',FontSize=15);
-text(0,0,'\boldmath$(0,0)$',Interpreter='latex',FontSize=15,VerticalAlignment='bottom');
+text(0,R1,'\boldmath$(0,R_1)$',Interpreter='latex',FontSize=20,VerticalAlignment='bottom');
+text(0,R2,'\boldmath$(0,R_2)$',Interpreter='latex',FontSize=20);
+text(Nbar,Rbar,'\boldmath$(\bar{N},\bar{R})$',Interpreter='latex',FontSize=20);
+text(0,0,'\boldmath$(0,0)$',Interpreter='latex',FontSize=20,VerticalAlignment='bottom');
 
 %axis equal
 xlim([0 5])
 ylim([0 5])
-xlabel('Consumer population density (N)','FontSize',20);
-ylabel('Resource population density (R)','FontSize',20);
+xlabel('Consumer population density (N)','FontSize',25);
+ylabel('Resource population density (R)','FontSize',25);
 %{
 legend('(N_0,R_0)=(5,1)','(N_0,R_0)=(5,2)','(N_0,R_0)=(5,3)','(N_0,R_0)=(1,5)' ...
     , '(N_0,R_0)=(2,5)','(N_0,R_0)=(3,5)','(N_0,R_0)=(0.1,R_2)');
 legend('Location','westoutside')
 %}
 %legend(sprintf('s=%.2f',s0))
-
+%{
 %% Vector field of Resource consumer model N by R
 Nlim = 5;
 Rlim = 5;
@@ -423,4 +423,5 @@ yline(splot(Text),'r--','LineWidth',1.5,'Label','$s=\bar{s}$', ...
 line([Text Text], [0 splot(Text)],'LineStyle','--','LineWidth',1.5,'Color','r');
 xlabel('Time');
 ylabel('Trait value');
+%}
 %}

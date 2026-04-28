@@ -17,13 +17,14 @@ set(0,'defaultAxesLineWidth',1.5);
 a=3;
 b=2;
 e=linspace(0,6,500);
+%{
 figure;
 plot(e,(erf(e-a)+1)/2,LineWidth=2);
 hold on;
 plot(e,(erf(e-b)+1)/2,LineWidth=2);
 xlabel('efficiency (e)')
 legend('A(e)','K(e)');
-
+%}
 %% Allee Population model
 
 r=5;
@@ -32,7 +33,7 @@ K = @(e) (erf(e-b)+1)/2;
 e=3;
 
 Ndot = @(N,e) r*N.*(N/A(e)-1).*(1-N/K(e));
-
+%{
 figure;
 N=linspace(0,1,500);
 plot(N,Ndot(N,e), LineWidth=2); %plots dN/dt by N
@@ -51,7 +52,7 @@ K=xline(K(e),'r-.','DisplayName', sprintf('K(e) = %.3f',K(e)));
 legend([A K],'Location','southwest')
 %plot(0,0,'k.',K(e),0,'k.',MarkerSize=25);
 %plot(A(e),0,'ko',MarkerSize=10,LineWidth=1.2);
-
+%}
 %% Evolution of resident and mutant population in time
 
 A = @(e) (erf(e-a)+1)/2;
@@ -63,8 +64,8 @@ end
 function Kfun= Kfun(e,b)
 Kfun = (erf(e-b)+1)/2;
 end
-x=6; % resident trait
-y=x+0.1*rand; % mutant trait
+x=10; % resident trait
+y=0.08;%x+0.1*rand; % mutant trait
 N0=Kfun(x,b);
 tspan = [0 500000];%linspace(0,5000000,10000000);%
 
@@ -92,7 +93,7 @@ n0 = [N0,0.01]; %initial values, mutant population initially small
 %N=abs([n;n1]);
 
 figure;
-plot(t,abs(n(:,1)),'-' ,t,abs(n(:,2)),'--',LineWidth=2.5);
+plot(t,n(:,1),'-' ,t,n(:,2),'--',LineWidth=2.5);
 %plot(T,abs(N(:,1)),'-' ,T,abs(N(:,2)),'--',LineWidth=2.5);
 xlabel('Time');
 ylabel('Population density');

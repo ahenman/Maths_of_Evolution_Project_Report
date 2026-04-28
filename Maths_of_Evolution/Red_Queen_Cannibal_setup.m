@@ -19,7 +19,7 @@ C(3,:)=[];
 C(6,:)=[];
 %% Attack rate
 
-x0 = 0.1;
+x0 = 0.1;%3;%
 Ao = 1;
 a = 2;
 a1=5;
@@ -27,26 +27,26 @@ a1=5;
 function A0= A0(A,x0,a,x)
 A0 = 2*A*x.^a./((x.^2/x0).^a+(x0)^a);
 end
-%{
-xl=2;
+%
+xl=0.5;
 x=linspace(0,xl,500);
 figure;
 plot(x, A0(Ao,x0,a,x));
 hold on;
-yline(Ao,'--',"Label","A_{i0}",Interpreter="tex",LineWidth=1);
-xline(x0,'--',Interpreter="tex",LineWidth=1);
+yline(Ao,'--',"Label","A_{i0}",Interpreter="tex",LineWidth=2,FontSize=25);
+xline(x0,'--',Interpreter="tex",LineWidth=2,FontSize=25);
 plot(x, A0(Ao,x0,a1,x));
-legend(sprintf('α=%.2f',a),'','',sprintf('α=%.2f',a1));
-xtickVals = unique([0 : xl/4 : xl, x0]);
+legend(sprintf('α=%.2f',a),'','',sprintf('α=%.2f',a1),FontSize=25);
+xtickVals = unique([0 : xl/5 : xl, x0]);
 xtickLabs = compose('%.3g',xtickVals);
 xtickLabs(ismembertol(xtickVals,x0)) = {'x_0'};
-set(gca,'xtick', xtickVals, 'xticklabel', xtickLabs, 'xlim', [min(xtickVals),max(xtickVals)])
+set(gca,'xtick', xtickVals, 'xticklabel', xtickLabs, 'xlim', [min(xtickVals),max(xtickVals)],FontSize=25)
 ytickVals = unique([0 : 0.2 : 1, Ao]);
 ytickLabs = compose('%.3g',ytickVals);
 ytickLabs(ismembertol(ytickVals,Ao)) = {'A_{i0}'};
-set(gca,'ytick', ytickVals, 'yticklabel', ytickLabs, 'ylim', [min(ytickVals),max(ytickVals)],'TickLabelInterpreter','tex')
-xlabel("Trait value (x_i)",'Interpreter','tex');
-ylabel("Rate of common resource consumption (a_{i0})",'Interpreter','tex');
+set(gca,'ytick', ytickVals, 'yticklabel', ytickLabs, 'ylim', [min(ytickVals),max(ytickVals)],'TickLabelInterpreter','tex',FontSize=25)
+xlabel("Trait value (x_i)",'Interpreter','tex',FontSize=25);
+ylabel("Rate of common resource consumption (a_{i0})",'Interpreter','tex',FontSize=25);
 
 figure;
 %}
@@ -126,7 +126,7 @@ xunder = 0.5;
 Ao = 1;
 A=10;
 a = 2;
-%b=1.5;%2.5;%
+b=1.5;%2.5;%
 g=8;
 d=2;
 c=1;
@@ -134,7 +134,7 @@ f=0.6;
 p=0.2;
 w1=0.1;
 w2=0.25;
-%N0=10;%500;%200;%
+N0=10;%500;%200;%
 
 %Non-trivial equilibrium
 function Nbar= Nbar(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
@@ -183,7 +183,7 @@ end
 z = linspace(0,5,500);
 sx = @(x) secgrad(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
 xstar=roots(chebfun(sx,[1e-6 5]));
-%{
+%
 
 figure;
 z = linspace(0,3,5000);
@@ -221,7 +221,7 @@ xlabel("Body Size (x)");
 ylabel("Equilibrium population density (N_x*)",'Interpreter','tex');
 %}
 %% PIP
-%{
+%
 [X,Y] = meshgrid(z, z);
 F = fit(X,Y,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);%fit(X,Y);%
 

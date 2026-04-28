@@ -192,7 +192,68 @@ function fxx = fxx(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
         a11.*N.*(h1ddot.*u+2*h1dot.*udot+h1.*uddot).*H-2*a11.*N.*(h1dot.*u+h1.*udot).^2)./H.^3-c*Nddot;
 end
 
-%
+function ddt = odefcn1(N,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
+N1 = N(1);
+N2 = N(2);
+ddt = zeros(2,1); % Initialize the derivative vector
+    ddt(1) = dN1dt(N1,N2,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A); %
+    ddt(2) = dN2dt(N1,N2,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A); %
+end
+
+function Nfun = Nfun(N,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
+    a10=A0(Ao,x0,a,x1);
+    a20=A0(Ao,x0,a,x2);
+    a11=Aij(A,xbar,xunder,b,g,d,p,x1,x1);
+    a22=Aij(A,xbar,xunder,b,g,d,p,x2,x2);
+    a21=Aij(A,xbar,xunder,b,g,d,p,x2,x1);
+    a12=Aij(A,xbar,xunder,b,g,d,p,x1,x2);
+    h1=h(w1,w2,x1);
+    h2=h(w1,w2,x2);
+
+    N1=N(1);
+    N2=N(2);
+
+    u=a10*N0+a11.*N1+a12.*N2;
+    v=a20*N0+a21.*N1+a22.*N2;
+
+    N1fun=N1.*((f*u-a11.*N1)./(1+h1.*u)-a21.*N2./(1+h2.*v)-c*(N1+N2));
+    N2fun=N2.*((f*v-a22.*N2)./(1+h2.*v)-a12.*N1./(1+h1.*u)-c*(N1+N2));
+    Nfun = [N1fun;N2fun];
+end
+
+function dN1dt = dN1dt(N1,N2,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
+    a10=A0(Ao,x0,a,x1);
+    a20=A0(Ao,x0,a,x2);
+    a11=Aij(A,xbar,xunder,b,g,d,p,x1,x1);
+    a22=Aij(A,xbar,xunder,b,g,d,p,x2,x2);
+    a21=Aij(A,xbar,xunder,b,g,d,p,x2,x1);
+    a12=Aij(A,xbar,xunder,b,g,d,p,x1,x2);
+    h1=h(w1,w2,x1);
+    h2=h(w1,w2,x2);
+
+    u=a10*N0+a11.*N1+a12.*N2;
+    v=a20*N0+a21.*N1+a22.*N2;
+
+    dN1dt=N1.*((f*u-a11.*N1)./(1+h1.*u)-a21.*N2./(1+h2.*v)-c*(N1+N2));
+end
+
+function dN2dt = dN2dt(N1,N2,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
+    a10=A0(Ao,x0,a,x1);
+    a20=A0(Ao,x0,a,x2);
+    a11=Aij(A,xbar,xunder,b,g,d,p,x1,x1);
+    a22=Aij(A,xbar,xunder,b,g,d,p,x2,x2);
+    a21=Aij(A,xbar,xunder,b,g,d,p,x2,x1);
+    a12=Aij(A,xbar,xunder,b,g,d,p,x1,x2);
+    h1=h(w1,w2,x1);
+    h2=h(w1,w2,x2);
+
+    u=a10*N0+a11.*N1+a12.*N2;
+    v=a20*N0+a21.*N1+a22.*N2;
+
+    dN2dt=N2.*((f*v-a22.*N2)./(1+h2.*v)-a12.*N1./(1+h1.*u)-c*(N1+N2));
+end
+
+%{
 fyystar=fyy(xstar,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
 fxxstar=fxx(xstar,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
 
@@ -205,7 +266,7 @@ for i = 1:size(xstar,1)
 end
 %}
 %% Colour plot to show how many singular strategies there are
-%
+%{
 figure;
 betinv=linspace(1e-2,1,5000); %1/beta values %try starting at a larger value
 N0ran = linspace(1e-6,1000,5000); %N0 values
@@ -230,7 +291,7 @@ ylabel("Size range (1/β)",'Interpreter','tex');
 set(gca,'YDir','normal'); %makes axis look normal
 %}
 %% 2 parameter bifurcation diagram for singular strategy classification
-%
+%{
 betinv=linspace(1e-2,1,100); %1/beta values
 N0ran = linspace(1e-6,1000,100); %N0 values
 
@@ -317,7 +378,7 @@ box on
 %}
 
 %% Create plots side-by-side
-%
+%{
 %I:
 b1=5; N01=500;
 %II
@@ -475,12 +536,60 @@ xticks(ax5,[0:5]);
 
 %% Population density
 
-b=1.1;
-N0=900;
+b=1.9;
+N0=500;
 tspan = [0 5000];
 opts = optimset('Display','off', 'TolX',1e-12, 'TolFun',1e-12, 'MaxIter',2000, 'MaxFunEvals',10000);
 C = orderedcolors("gem12");
 
+x1list=linspace(0.4,2.6,50);
+x2=4.1;
+CA=C(5,:);
+CB=C(3,:);
+CC=C(1,:);
+for i=1:50
+    x1=x1list(i);
+    [~,n] = ode45(@(t,n) odefcn1(n,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [0.2 0.2]);
+    nfun=@(N) Nfun(N,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
+    Nstar = fsolve(nfun,[n(end,1) n(end,2)],opts);
+    %stable eqm
+    N1star = Nstar(1);
+    N2star = Nstar(2);
+    %unstable
+    N2=Nbar(x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);%N1=0
+    N1=Nbar(x1,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);%N2=0
+    
+    [t,n1] = ode45(@(t,n1) odefcn1(n1,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [0 0.0001]);
+    [~,n2] = ode45(@(t,n2) odefcn1(n2,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [0.0001 0]);
+    [~,n3] = ode45(@(t,n3) odefcn1(n3,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [0.0001 N2]);
+    [~,n4] = ode45(@(t,n4) odefcn1(n4,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [N1 0.0001]);
+    
+    figure;
+    if fit(x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)>0
+        if fit(x2,x1,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)>0
+            C=CA;
+        else
+            C=CC;
+        end
+    else
+        C=CB;
+    end
+    plot(n1(:,1),n1(:,2),'LineWidth',5,'Color',C);
+    hold on;
+    plot(n2(:,1),n2(:,2),'LineWidth',5,'Color',C);
+    plot(n3(:,1),n3(:,2),'LineWidth',5,'Color',C);
+    plot(n4(:,1),n4(:,2),'LineWidth',5,'Color',C);
+    %equilibria
+    plot(0,0,'o',MarkerSize=15,Color=C,MarkerFaceColor='w');
+    plot(0,N2,'square',MarkerSize=15,Color=C,MarkerFaceColor='w');
+    plot(N1,0,'square',MarkerSize=15,Color=C,MarkerFaceColor='w');
+    plot(N1star,N2star,'.',MarkerSize=52,Color=C);
+    
+    axis square;
+    ylim([0 2.5]);
+    xlim([0 4]);
+end
+%{
 %coexistence
 x1=1;
 x2=7;
@@ -577,3 +686,4 @@ plot(N1star,N2star,'.',MarkerSize=50,Color=C(3,:));
 
 set(gca,"XTickLabel",[],"YTickLabel",[]);
 axis square;
+%}
