@@ -22,7 +22,7 @@ figure;
 plot(t,N);
 hold on;
 
-plot(t,r./d*ones(size(t)),'--');
+plot(t,r./d*ones(size(t)),'--'); %predicted equilibrium value
 title('dN/dt = N(r-Nd)')
 xlabel('Time');
 ylabel('Population (N)');
@@ -53,6 +53,7 @@ end
 n0 = [N0,0.001]; %initial values, mutant population initially small
 [t,n] = ode45(@(t,n) odefcn(n,x,y,d) , tspan, n0);
 %{
+%second mutation after resdient has equilibrated
 y2=y+0.02;
 N0=n(end,2);
 n0 = [N0,0.001]; %initial values, mutant population initially small

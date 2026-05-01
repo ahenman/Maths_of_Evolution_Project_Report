@@ -33,14 +33,16 @@ x=linspace(0,xl,500);
 figure;
 plot(x, A0(Ao,x0,a,x));
 hold on;
-yline(Ao,'--',"Label","A_{i0}",Interpreter="tex",LineWidth=2,FontSize=25);
-xline(x0,'--',Interpreter="tex",LineWidth=2,FontSize=25);
-plot(x, A0(Ao,x0,a1,x));
+yline(Ao,'--',"Label","A_{i0}",Interpreter="tex",LineWidth=2,FontSize=25); %max value of aio
+xline(x0,'--',Interpreter="tex",LineWidth=2,FontSize=25);                   %trait at which max achieved
+plot(x, A0(Ao,x0,a1,x));                                                    %plot of aio by x
 legend(sprintf('α=%.2f',a),'','',sprintf('α=%.2f',a1),FontSize=25);
-xtickVals = unique([0 : xl/5 : xl, x0]);
+%adding x0 to x axis
+xtickVals = unique([0 : xl/5 : xl, x0]);                                    
 xtickLabs = compose('%.3g',xtickVals);
 xtickLabs(ismembertol(xtickVals,x0)) = {'x_0'};
 set(gca,'xtick', xtickVals, 'xticklabel', xtickLabs, 'xlim', [min(xtickVals),max(xtickVals)],FontSize=25)
+%adding A0 to y axis
 ytickVals = unique([0 : 0.2 : 1, Ao]);
 ytickLabs = compose('%.3g',ytickVals);
 ytickLabs(ismembertol(ytickVals,Ao)) = {'A_{i0}'};
@@ -53,7 +55,7 @@ figure;
 function Aij= Aij(A,xbar,xunder,b,g,d,p,x,y)
 Aij = A*2./((p*x./y).^(b)+(y./(p*x)).^(b)).*(x.^g./(xunder^g+x.^g)).*(xbar^d./(xbar^d+x.^d));
 end
-%{
+%
 limit = 30;
 [X,Y] = meshgrid(0:0.05:limit,0:0.05:limit);
 xbar = 13;
@@ -69,6 +71,7 @@ hold on;
 %grid
 [X,Y] = meshgrid(0:0.3:limit,0:0.3:limit);
 Z=Aij(A,xbar,xunder,b,g,d,p,X,Y);
+%surface plot of aij
 surf(X,Y,Z,'EdgeAlpha',0.5,'FaceAlpha',0);
 hold on;
 
@@ -79,6 +82,7 @@ plot3(x,p.*x,Zmax,'k','LineWidth',2);
 Zsame=Aij(A,xbar,xunder,b,g,d,p,x,x);
 plot3(x,x,Zsame,'b--','LineWidth',2);
 
+%creates planes of xi=xunder and xi=xbar
 patch([xunder xunder xunder xunder],[0 0 limit limit], [0 max(Z(:)) max(Z(:)) 0],'red','FaceAlpha',0.3);
 patch([xbar xbar xbar xbar],[0 0 limit limit], [0 max(Z(:)) max(Z(:)) 0],[1 0.5 0],'FaceAlpha',0.3);
 
@@ -98,7 +102,7 @@ set(gca,'xtick', xtickVals, 'xticklabel', xtickLabs,'TickLabelInterpreter','late
 function hij= h(w1,w2,x)
 hij = w1*x.^(-w2);
 end
-%{
+%
 x=linspace(0,30,5000);
 
 w11=0.1;
@@ -120,6 +124,7 @@ ylim([0 2])
 %}
 %% Selection gradient
 
+%parameters
 x0 = 0.1;
 xbar = 5;
 xunder = 0.5;
@@ -180,14 +185,13 @@ function secgrad = secgrad(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
     secgrad=(f*(N0*a10dot+N.*a21dot-h1dot.*(N0*a10+a11.*N).^2)-(1+h1.*(a10*N0+a11.*N)).*a12dot.*N)./(1+h1.*(a10*N0+a11.*N)).^2;
 end
 
-z = linspace(0,5,500);
 sx = @(x) secgrad(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
-xstar=roots(chebfun(sx,[1e-6 5]));
 %
 
 figure;
 z = linspace(0,3,5000);
 S=secgrad(z,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
+%selection gradient by trait value
 plot(z,S);
 grid on;
 hold on;
@@ -213,6 +217,7 @@ plot(xstar(1),Nbar(xstar(1),a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A),'.',Mark
 plot(xstar(2),Nbar(xstar(2),a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A),'o',MarkerSize=10,Color=C(2,:));
 plot(xstar(3),Nbar(xstar(3),a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A),'.',MarkerSize=25,Color=C(3,:));
 legend('');
+%singular strategies
 for i = 1:size(xstar,1)
     xline(xstar(i),'LineStyle','--','LineWidth',2,'DisplayName',['x*=',num2str(xstar(i),3)],'Color',C(i,:)) %evolutionary singular strategy
 end

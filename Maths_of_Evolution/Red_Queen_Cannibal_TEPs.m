@@ -18,6 +18,7 @@ C(2,:)=[];
 C(3,:)=[];
 C(6,:)=[];
 
+%Attack and handling
 function A0= A0(A,x0,a,x)
 A0 = 2*A*x.^a./((x.^2/x0).^a+(x0)^a);
 end
@@ -28,6 +29,7 @@ function hij= h(w1,w2,x)
 hij = w1*x.^(-w2);
 end
 
+%parameters
 x0 = 0.1;
 xbar = 5;
 xunder = 0.5;
@@ -89,6 +91,7 @@ function secgrad = secgrad(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
 end
 
 sx = @(x) secgrad(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
+%Second derivatives
 
 function fyy = fyy(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
     a10=A0(Ao,x0,a,x);
@@ -202,6 +205,7 @@ N0=750;
 
 %Fitness and selection gradients
 
+%dN/dt for trait x1 and x2
 function dN1dt = dN1dt(N1,N2,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
     a10=A0(Ao,x0,a,x1);
     a20=A0(Ao,x0,a,x2);
@@ -233,7 +237,7 @@ function dN2dt = dN2dt(N1,N2,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
 
     dN2dt=N2.*((f*v-a22.*N2)./(1+h2.*v)-a12.*N1./(1+h1.*u)-c*(N1+N2));
 end
-
+%combined system
 function ddt = odefcn1(N,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
 N1 = N(1);
 N2 = N(2);
@@ -241,7 +245,7 @@ ddt = zeros(2,1); % Initialize the derivative vector
     ddt(1) = dN1dt(N1,N2,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A); %
     ddt(2) = dN2dt(N1,N2,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A); %
 end
-
+%combined system again but in a different format
 function Nfun = Nfun(N,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
     a10=A0(Ao,x0,a,x1);
     a20=A0(Ao,x0,a,x2);
@@ -262,7 +266,7 @@ function Nfun = Nfun(N,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
     N2fun=N2.*((f*v-a22.*N2)./(1+h2.*v)-a12.*N1./(1+h1.*u)-c*(N1+N2));
     Nfun = [N1fun;N2fun];
 end
-
+%2 resident invasion fitness
 function fit12=fit12(x1,x2,y,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A,N1,N2)
     a10=A0(Ao,x0,a,x1);
     a20=A0(Ao,x0,a,x2);
@@ -285,7 +289,7 @@ function fit12=fit12(x1,x2,y,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A,N1,N2)
     
     fit12 = f*(a30*N0+a31.*N1+a32.*N2)./H3-a13.*N1./H1-a23.*N2./H2-c*(N1+N2);
 end
-
+%2 resident selection gradients
 function secgrad1 = secgrad1(x1,x2,a,b,g,d,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A,N1,N2)
     
     a10=A0(Ao,x0,a,x1);
@@ -349,6 +353,7 @@ end
 
 z=logspace(log10(xmin),log10(xmax),200);%for log scale
 %z=linspace(1e-6,xmax,100);             %for regular
+%for zoomed in plots
 z1=linspace(0.015,0.045,100);
 z2=linspace(1.416,1.446,100);
 [X1,X2] = meshgrid(z1, z2);
@@ -362,29 +367,30 @@ S1 = zeros(size(X1));
 S2 = zeros(size(X2));
 
 %using the limit of dN1/dt dN2/dt to find N to find the selection gradient
-%{
+%
 tspan = [0 4000];
-
 opts = optimset('Display','off', 'TolX',1e-12, 'TolFun',1e-12, 'MaxIter',2000, 'MaxFunEvals',10000);
 %For upper half plane only
-%{
+%
 k=0;
 for i = 1:size(X2,1)
     for j = 1:i
-        fprintf("p=%.4f\n",200*k/numel(S1));
+        fprintf("p=%.4f\n",200*k/numel(S1));%for progress tracking
         k=k+1;
+        %resident trait values
         x1=X1(i,j);
         x2=X2(i,j);
-
+        %equiibrium values
         nfun=@(N) Nfun(N,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
-        [t,n] = ode45(@(t,n) odefcn1(n,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [0.2 0.2]);
-        Nstar = fsolve(nfun,[n(end,1) n(end,2)],opts);
+        [t,n] = ode45(@(t,n) odefcn1(n,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [0.2 0.2]); %finds limit of N over time
+        Nstar = fsolve(nfun,[n(end,1) n(end,2)],opts); %puts limit into solver for higher accuracy
     
         N1= Nstar(1);
         N2= Nstar(2);
         
         N1grid(i,j)=N1;
         N2grid(i,j)=N2;
+        %selection gradient at these trait values
         S1(i,j)=sx1(x1,x2,N1,N2);
         S2(i,j)=sx2(x1,x2,N1,N2);
     end
@@ -393,28 +399,20 @@ end
 %For full plot
 %{
 for k=1:numel(S1)
-    fprintf("k=%.4f\n",100*k/numel(S1));
+    fprintf("k=%.4f\n",100*k/numel(S1));%for progress tracking
+    %resident trait values
     x1=X1(k);
     x2=X2(k);
+    %equiibrium values
     nfun=@(N) Nfun(N,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
-    [t,n] = ode45(@(t,n) odefcn1(n,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [0.2 0.2]);
-    Nstar = fsolve(nfun,[n(end,1) n(end,2)],opts);
+    [t,n] = ode45(@(t,n) odefcn1(n,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [0.2 0.2]);%finds limit of N over time
+    Nstar = fsolve(nfun,[n(end,1) n(end,2)],opts); %puts limit into solver for higher accuracy
 
     N1= Nstar(1);
     N2= Nstar(2);
     N1grid(k)=N1;
     N2grid(k)=N2;
-    if norm(nfun(Nstar))>1e-6
-        norm(nfun(Nstar))
-        fprintf('x1=%.2f',x1)
-        fprintf('x2=%.2f\n',x2)
-        fprintf('N1=%.2f',N1)
-        fprintf('N2=%.2f\n',N2)
-        fprintf('N1=%.2f',n(end,1))
-        fprintf('N2=%.2f',n(end,2))
-        norm(nfun([n(end,1) n(end,2)]))
-    end
-
+    %selection gradient at these trait values
     S1(k)=sx1(x1,x2,N1,N2);
     S2(k)=sx2(x1,x2,N1,N2);
 end
@@ -426,14 +424,14 @@ z=logspace(log10(xmin),log10(xmax),5000);%for log scale
 %z=linspace(0,xmax,2000);               %for regular
 [X,Y] = meshgrid(z1, z2);
 
-F1 = fit(X,Y,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
-F2 = fit(Y,X,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
+F1 = fit(X,Y,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A); %x1 resident, x2 mutant
+F2 = fit(Y,X,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A); %x2 resident, x1 mutant
 sx = @(x) secgrad(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
-xstar=roots(chebfun(sx,[1e-6 5]));
+xstar=roots(chebfun(sx,[1e-6 5])); %singular strategies
 
 F = zeros(size(X));
 F(F1>0)=1;   %fx(y)>0
-F(F2>0)=2;   %fx(y)<0
+F(F2>0)=2;   %fy(x)>0
 F(F1>0&F2>0)=3;   %mutual invasibility
 F(X>Y)=0;       %shows upper half only
 
@@ -479,34 +477,36 @@ xlabel('$\textsf{Resident trait value}$ ($x_1$)','Interpreter','latex','FontSize
 ylabel('$\textsf{Resident trait value}$ ($x_2$)','Interpreter','latex','FontSize',20);
 axis equal
 %
-step = 8;%stepsize of z/25
+%so we can have sparse arrows even if lots of datacollected for accuracy
+step = 8;%(stepsize of z)/25
 X11= X1(1:step:end,1:step:end);
 X22= X2(1:step:end,1:step:end);
 S11=S1(1:step:end,1:step:end);
 S22=S2(1:step:end,1:step:end);
 
-
+%normalise
 %r = sqrt((S11./X11).^2+(S22./X22).^2);  %for log scale
 r = sqrt(S11.^2+S22.^2);                 %for regular
 r(r==0) = 1;
 
 L = 0.08;
+%vector field
 %quiver(log10(X11),log10(X22),L*(S11./X11./r),L*(S22./X22./r),0,"LineWidth",1,"Color","k",'Alignment','center');  %for log space
 quiver(X11,X22,S11./r,S22./r,0.6,"LineWidth",1,"Color","k","Alignment","center");                                   %for regular
 legend('','');
-
+%selection gradient nullclines
 %contour(log10(X1),log10(X2),S1,[0 0],'r:','LineWidth',2,'DisplayName','s_{x_1,x_2}(x_1)=0');    %for log space
 %contour(log10(X1),log10(X2),S2,[0 0],'b:','LineWidth',2,'DisplayName','s_{x_1,x_2}(x_2)=0');    %for log space
 contour(X1,X2,S1,[0 0],'r:','LineWidth',2,'DisplayName','s_{x_1,x_2}(x_1)=0');                 %for regular
 contour(X1,X2,S2,[0 0],'b:','LineWidth',2,'DisplayName','s_{x_1,x_2}(x_2)=0');                 %for regular
-
+%singular strategies
 %xline(log10(xstar(end)), 'LineStyle','--', 'LineWidth',1.5, 'Color',C(3,:), 'DisplayName','B');       %for log space
 %xline(log10(xstar(2)), 'LineStyle','--', 'LineWidth',1.5, 'Color',C(2,:), 'DisplayName','D');         %for log space
 %xline(log10(xstar(1)), 'LineStyle','--', 'LineWidth',1.5, 'Color',C(1,:), 'DisplayName','CSS');       %for log space
 xline(xstar(end),'LineStyle','--','LineWidth',1.5,'Color',C(3,:),'DisplayName',['B=',num2str(xstar(end),3)])                 %for regular
 xline(xstar(2),'LineStyle','--','LineWidth',1.5,'Color',C(2,:),'DisplayName',['D=',num2str(xstar(2),3)])             %for regular
 xline(xstar(1),'LineStyle','--','LineWidth',1.5,'Color',C(1,:),'DisplayName',['CSS=',num2str(xstar(1),3)])             %for regular
-
+%setting axes labels correctly for log scale
 %set(gca,'XTick',[-1,0,1], 'YTick', [-1,0,1]);               %for log space
 %set(gca,'XTickLabel',[0.1,1,10], 'YTickLabel', [0.1,1,10]); %for log space
 
@@ -649,7 +649,7 @@ fit2yy(S(1),S(2),a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
 %Stochastic simulation of trait evolution
 tspan = [0 5000];
 opts = optimset('Display','off');
-numberofrealisations = 1; % number of sample paths
+numberofrealisations = 7; % number of sample paths
 T = 4000; % end time for simulation
 xstar=roots(chebfun(sx,[1e-6 5]));
 xinitial = xstar(end); %branch point
@@ -659,9 +659,9 @@ N2initial = N1initial;
 xplot = zeros(T+1,numberofrealisations);
 xbplot = zeros(T+1,numberofrealisations);
 timeplot = zeros(T+1,numberofrealisations);
-m=0.01;
+m=0.01;%mutational step
 for i = 1:numberofrealisations %Run numberofrealisations simulations
-    i
+    i %progress checker
     x1=xinitial;
     x2=xinitial; %resident of the branch
     N1= N1initial;
@@ -764,6 +764,7 @@ end
 C = orderedcolors("gem");
 hold on;
 for i=1:numberofrealisations %shows trait trajectory in trait space
+    %ensures x2>x1
     k=stairs(min(xplot(:,i),xbplot(:,i)),max(xplot(:,i),xbplot(:,i)),'Color',C(mod(i,7)+1,:));
     set(k,'Linewidth',2);
 end
@@ -776,16 +777,18 @@ for i=1:numberofrealisations  %shows branching against time
 end
 %}
 %Alternatively the determinsitic simulation of trait evolution using the
-%canonical equation
-%{
+%% canonical equation
+%
 function ddt = odefcn2(X,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A,opts)
 x1=X(1);
 x2=X(2);
+%finds equilibrium
 nfun=@(N) Nfun(N,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
 [~,n] = ode45(@(t,n) odefcn1(n,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , [0 1000], [0.2 0.2]);
 Nstar = fsolve(nfun,[n(end,1) n(end,2)],opts);
 N1 = Nstar(1);
 N2 = Nstar(2);
+%checks if its reasonable
 if N1<1e-200||N2<1e-200
     fprintf("N1=%f\n",N1);
     fprintf("N2=%f\n",N2);
@@ -799,6 +802,7 @@ ddt = zeros(2,1); % Initialize the derivative vector
     ddt(2) = N2*secgrad2(x1,x2,a,b,g,d,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A,N1,N2); %
 end
 
+%plots trajectory in trait space
 [t,x]=ode45(@(t,x) odefcn2(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A,opts) , [0 500], [xinitial xinitial+0.1]);
 plot(x(:,1),x(:,2))
 %}

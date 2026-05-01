@@ -12,6 +12,7 @@ set(0,'defaultAxesYGrid','off');
 set(0,'defaultAxesTickDir','out');
 set(0,'defaultAxesLineWidth',1.5);
 set(0,'defaultLineLineWidth',2)
+C = orderedcolors("gem");
 
 %% Resource consumer model N by R
 tspan=linspace(0,500,100000);%[0 5000];%
@@ -30,18 +31,21 @@ ddt = zeros(2,1); % Initialize the derivative vector
     ddt(1) = dNdt(N,R,d,f,s); % resident population
     ddt(2) = dRdt(N,R,a,b,c,s); % mutant population density
 end
-a=25;
+%parameters
+a=25;%64;
 b=4;
 c=4;
 d=7;
 f=1;
 s0=2;
-sstar=d*(c+sqrt(a*c))/(f*(a-c));
+sstar=d*(c+sqrt(a*c))/(f*(a-c)); %hopf bifurcation point
+%equilibria
 R1=(a-b-c-sqrt((b+c-a)^2-4*b*c))/(2*c);
 R2=(a-b-c+sqrt((b+c-a)^2-4*b*c))/(2*c);
 Rbar=d/(f*s0);
 Nbar=(a*Rbar-(b+c*Rbar)*(1+Rbar))/(s0*(1+Rbar));
-
+%
+%Finding population dynamics over time for various initial points
 [t,n11] = ode45(@(t,n) odefcn1(n,a,b,c,d,f,s0) , tspan, [5 1]);
 [t,n12] = ode45(@(t,n) odefcn1(n,a,b,c,d,f,s0) , tspan, [5 2]);
 [t,n13] = ode45(@(t,n) odefcn1(n,a,b,c,d,f,s0) , tspan, [5 3]);
@@ -51,9 +55,9 @@ Nbar=(a*Rbar-(b+c*Rbar)*(1+Rbar))/(s0*(1+Rbar));
 [t,n17] = ode45(@(t,n) odefcn1(n,a,b,c,d,f,s0) , tspan, [0.1 R2]);
 %[t,n17] = ode45(@(t,n) odefcn1(n,a,b,c,d,f,s0) , tspan, [Nbar+0.1 Rbar]);
 
-%{
-s0=5;
 
+s0=5;
+%and again for a different s
 [t,n21] = ode45(@(t,n) odefcn1(n,a,b,c,d,f,s0) , tspan, [5 1]);
 [t,n22] = ode45(@(t,n) odefcn1(n,a,b,c,d,f,s0) , tspan, [5 2]);
 [t,n23] = ode45(@(t,n) odefcn1(n,a,b,c,d,f,s0) , tspan, [5 3]);
@@ -61,8 +65,10 @@ s0=5;
 [t,n25] = ode45(@(t,n) odefcn1(n,a,b,c,d,f,s0) , tspan, [2 5]);
 [t,n26] = ode45(@(t,n) odefcn1(n,a,b,c,d,f,s0) , tspan, [1 5]);
 %[t,n27] = ode45(@(t,n) odefcn1(n,a,b,c,d,f,s0) , tspan, [0.1 R2]);
-%}
+
 figure;
+%{
+%green colour scheme for poster
 G=[0.757 0.820 0.122
     0.596 0.788 0.169
     0.431 0.753 0.027
@@ -72,10 +78,11 @@ G=[0.757 0.820 0.122
     0.239 0.525 0.043
     0.122 0.455 0.051
     0.000 0.380 0.055];
-
+%}
 C = orderedcolors("gem");
 
 hold on;
+%plotting consumer by resource population
 plot(abs(n11(:,1)),abs(n11(:,2)),LineWidth=2.5,Color=C(1,:));
 plot(abs(n12(:,1)),abs(n12(:,2)),LineWidth=2.5,Color=C(2,:));
 plot(abs(n13(:,1)),abs(n13(:,2)),LineWidth=2.5,Color=C(3,:));
@@ -84,10 +91,10 @@ plot(abs(n15(:,1)),abs(n15(:,2)),LineWidth=2.5,Color=C(5,:));
 plot(abs(n16(:,1)),abs(n16(:,2)),LineWidth=2.5,Color=C(4,:));
 plot(abs(n17(:,1)),abs(n17(:,2)),LineWidth=2.5,Color=C(7,:));
 %equilibria:
-plot(0,0,'.',MarkerSize=30);
-plot(0,R1,'o',MarkerSize=10);
-plot(0,R2,'o',MarkerSize=10);
-plot(Nbar,Rbar,'.',MarkerSize=30);
+plot(0,0,'.',MarkerSize=30); %stable
+plot(0,R1,'o',MarkerSize=10); %unstable
+plot(0,R2,'o',MarkerSize=10); %unstable
+plot(Nbar,Rbar,'.',MarkerSize=30); %stable
 
 text(0,R1,'\boldmath$(0,R_1)$',Interpreter='latex',FontSize=20,VerticalAlignment='bottom');
 text(0,R2,'\boldmath$(0,R_2)$',Interpreter='latex',FontSize=20);
@@ -100,13 +107,15 @@ ylim([0 5])
 xlabel('Consumer population density (N)','FontSize',25);
 ylabel('Resource population density (R)','FontSize',25);
 %{
+%initial population densities
 legend('(N_0,R_0)=(5,1)','(N_0,R_0)=(5,2)','(N_0,R_0)=(5,3)','(N_0,R_0)=(1,5)' ...
     , '(N_0,R_0)=(2,5)','(N_0,R_0)=(3,5)','(N_0,R_0)=(0.1,R_2)');
 legend('Location','westoutside')
 %}
 %legend(sprintf('s=%.2f',s0))
-%{
+%}
 %% Vector field of Resource consumer model N by R
+
 Nlim = 5;
 Rlim = 5;
 sbar = 4.940275;
@@ -114,14 +123,17 @@ s0=sbar;
 [N,R] = meshgrid(linspace(0,Nlim,30),linspace(0,Rlim,30));
 Ndot = N.*(f*s0.*R-d);
 Rdot = R.*(a.*R./(1+R)-b-c.*R-s0.*N);
-r = sqrt(Ndot.^2+Rdot.^2);
-
+r = sqrt(Ndot.^2+Rdot.^2); %normalisation
+%
+%equilibrium
 Rbar=d/(f*s0);
 Nbar=(a*Rbar-(b+c*Rbar)*(1+Rbar))/(s0*(1+Rbar));
 
 figure;
+%vector field
 quiver(N,R,Ndot./r,Rdot./r,0.5,"LineWidth",0.5,"Color","k");
 hold on;
+%coloured by strength
 imagesc(linspace(0,Nlim,30),linspace(0,Rlim,30),r,'AlphaData',0.7);
 colorbar;
 %quiver(N,R,Ndot./r,Rdot./r,0.5,"LineWidth",0.5,Color','white');
@@ -141,12 +153,13 @@ ylim([-0.1 Rlim]);
 xlabel("Consumer population density (N)");
 ylabel("Resource population density (R)");
 
-
+%}
 %% Create plots side-by-side
-%{
+%
 tile = tiledlayout(1,2);
 
 ax1 = nexttile;
+%plot consumer by resource for various initial densities
 plot(ax1,abs(n11(:,1)),abs(n11(:,2)),LineWidth=2.5,Color=G(9,:));
 hold on;
 plot(ax1,abs(n12(:,1)),abs(n12(:,2)),LineWidth=2.5,Color=G(7,:));
@@ -174,6 +187,7 @@ title(ax1,'Stable coexistence','FontSize',20);
 ylabel(ax1,'Resource density (R)','FontSize',22);
 
 ax2 = nexttile;
+%plot consumer by resource for various initial densities
 plot(ax2,abs(n21(:,1)),abs(n21(:,2)),LineWidth=2.5,Color=G(9,:));
 hold on;
 plot(ax2,abs(n22(:,1)),abs(n22(:,2)),LineWidth=2.5,Color=G(7,:));
@@ -199,22 +213,22 @@ ylim(ax2,[0 5])
 title(ax2,'Mutual extinction','FontSize',20);
 
 % Link the axes
-linkaxes([ax1,ax2],'y');
+linkaxes([ax1,ax2],'y'); %give them the same y axis
 
 % Add shared title and axis labels
 xlabel(['Consumer population density (N)                                    ' ...
     '            '],'FontSize',22);
 
 % Move plots closer together
-yticklabels(ax2,{});
+yticklabels(ax2,{});%y axis only shows on 1st plot
 xticks(ax1,[0:5]);
 xticks(ax2,[0:5]);
 tile.TileSpacing = 'compact';
+
 %}
-
 %% EvoSuicide video
-
-%{
+%
+%Shows the dynamics of consumer and resource for a point before and after evo suicide 
  vidfile = VideoWriter('Suicidespiral(1).mp4','MPEG-4');
  vidfile.FrameRate=10;
  open(vidfile);
@@ -225,6 +239,8 @@ tile.TileSpacing = 'compact';
     tile = tiledlayout(1,2);
 
     ax1 = nexttile;
+    %plot consumer by resource for various initial densities for 1 time
+    %step
     plot(ax1,abs(n11([1:j+1],1)),abs(n11([1:j+1],2)),LineWidth=2.5,Color=G(9,:));
     hold on;
     plot(ax1,abs(n12([1:j+1],1)),abs(n12([1:j+1],2)),LineWidth=2.5,Color=G(7,:));
@@ -246,6 +262,8 @@ tile.TileSpacing = 'compact';
     ylabel(ax1,'Resource density (R)','FontSize',22);
     
     ax2 = nexttile;
+    %plot consumer by resource for various initial densities for 1 time
+    %step
     plot(ax2,abs(n21([1:j+1],1)),abs(n21([1:j+1],2)),LineWidth=2.5,Color=G(9,:));
     hold on;
     plot(ax2,abs(n22([1:j+1],1)),abs(n22([1:j+1],2)),LineWidth=2.5,Color=G(7,:));
@@ -277,7 +295,7 @@ tile.TileSpacing = 'compact';
     xticks(ax1,[0:5]);
     xticks(ax2,[0:5]);
     tile.TileSpacing = 'compact';
-    writeVideo(vidfile, getframe(gcf));
+    writeVideo(vidfile, getframe(gcf));%adds the single time step to the video
  end
 close(vidfile)
 %}
@@ -289,7 +307,7 @@ fit = @(x,y) d*(y./x-1);
 z = linspace(0,6,500);
 [X,Y] = meshgrid(z, z);
 F = fit(X,Y);
-
+%
 figure;
 hold on
 % PIP
@@ -302,10 +320,11 @@ p1 = patch(NaN, NaN, [0.6 0.9 0.3]);  % green block for s>0
 p2 = patch(NaN, NaN, [1 1 1]);  % white block for s<0
 hZero = plot(NaN, NaN, 'k-', 'LineWidth', 2);  % black line for s=0
 
-xline(d/(R2*f));
+xline(d/(R2*f));%left boundary of viability
 %xline(sstar);
-xline(4.940275);
+xline(4.940275); %sbar, right boundary of viability
 z = ones(size(Y));
+%shade region outside viable region
 area([0 d/(R2*f)],[6;6],"FaceColor","red","FaceAlpha",0.5);
 area([4.940275 6],[6;6],"FaceColor","red","FaceAlpha",0.5);
 text(d/(R2*f),6,'$\partial V$','Interpreter','latex','VerticalAlignment','bottom','HorizontalAlignment','center','FontSize',20);
@@ -313,12 +332,13 @@ text(4.940275,6,'$\partial V$','Interpreter','latex','VerticalAlignment','bottom
 
 axis equal
 box on
-
-%% Resource consumer model N by R
+%}
+%% Resource consumer model N by R with a mutant
 tspan=[0 500];%linspace(0,500,100000);%
 x=2;
 y=x+0.2*rand-0.1;
 
+%resource evolution with a mutant consumer
 function dRdt2 = dRdt2(N,M,R,a,b,c,x,y)
     dRdt2 = R*(a*R/(1+R)-b-c*R-x*N-y*M);
 end
@@ -335,16 +355,17 @@ end
 R0=d/(f*x);
 N0=[(a*R0-(b+c*R0)*(1+R0))/(x*(1+R0)),0.1,R0];
 [t,n] = ode45(@(t,n) odefcn2(n,a,b,c,d,f,x,y) , tspan, N0);
+%{
 figure;
 plot(t,n(:,1),'-o',t,n(:,2),'-o',t,n(:,3),'-o');
 legend(['N,x=',num2str(x)],['M,y=',num2str(y)],'R');
-
+%}
 %% simulation
-%{
+
 tend=500000;
 tspan=[0 tend];    %timespan for each simulation
-T=300;              %Number of simulations
-x=2;                %initial trait value
+T=50;              %Number of simulations
+x=1.5;                %initial trait value
 %initial densities
 R0=d/(f*x);
 N0=(a*R0-(b+c*R0)*(1+R0))/(x*(1+R0));
@@ -363,7 +384,7 @@ Nplot2(1)=N0;
 splot(1)=x;
 Tplot(1)=0;
 for time=2:T+1
-    y=x+0.1*rand-0.05; %Generate mutant (+- 0.05 from resident)
+    y=x+0.1*rand-0.001; %Generate mutant (+- 0.05 from resident)
     %run time evolution of mutant, resident and resource
     [t,n] = ode45(@(t,n) odefcn2(n,a,b,c,d,f,x,y) , tspan, [N0,0.1,R0]); %[N0,0.1,R0] goes from lat recorded value of population%[(a*d/(f*x)-(b+c*d/(f*x))*(1+d/(f*x)))/(x*(1+d/(f*x))),0.1,d/(f*x)] for equilibria
     %if unsuccesful population hasn't died
@@ -396,6 +417,7 @@ Tstar = find(abs(splot-sstar)==min(abs(splot-sstar)),1)-1;
 Text = find(abs(splot-4.940275)==min(abs(splot-4.940275)),1)-1;
 C = orderedcolors("gem");
 figure;
+%Consumer by time
 plot(Tplot,Nplot1,'Color',C(1,:));
 hold on;
 plot(Tplot,Nplot2,'Color',C(1,:));
@@ -405,6 +427,7 @@ xlabel('Time');
 ylabel('Population density');
 
 figure;
+%Resource by time
 plot(Tplot,Rplot1,'Color',C(2,:));
 hold on;
 plot(Tplot,Rplot2,'Color',C(2,:));
@@ -414,6 +437,7 @@ xlabel('Time');
 ylabel('Resource density');
 
 figure;
+%trait by time
 plot(Tplot,splot,'Color',C(3,:));
 yline(sstar,'k--','LineWidth',1.5,'Label','s=s^*','Interpreter','tex', ...
     'FontSize',18,'LabelVerticalAlignment','bottom');
@@ -423,5 +447,3 @@ yline(splot(Text),'r--','LineWidth',1.5,'Label','$s=\bar{s}$', ...
 line([Text Text], [0 splot(Text)],'LineStyle','--','LineWidth',1.5,'Color','r');
 xlabel('Time');
 ylabel('Trait value');
-%}
-%}

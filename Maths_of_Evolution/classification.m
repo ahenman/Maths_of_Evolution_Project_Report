@@ -14,8 +14,9 @@ set(0,'defaultAxesTickDir','out');
 set(0,'defaultAxesLineWidth',1.5);
 
 %% fitness change by x
+%This was not used because it was the wrong argument
 x=linspace(0,5,500);
-xstar=1.7;
+xstar=1.7; %singular strategy
 f=(x-xstar).^2;
 figure;
 
@@ -35,9 +36,9 @@ axis square
 
 %% unstable divergent strategy e.g. PIP
 
-xbar=1.5;
+xbar=1.5; %singular strategy
 %invasion fitness
-f = @(x,y) (y-x).*(y+x-2*xbar);
+f = @(x,y) (y-x).*(y+x-2*xbar); %gives it the desired shape
 
 z = linspace(0,3,500);
 [X,Y] = meshgrid(z, z);

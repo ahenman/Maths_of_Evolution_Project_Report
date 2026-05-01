@@ -40,13 +40,14 @@ m=0.1; %max size of mutation
 
 %Equilibria
 N1 = @(x) K(C1,C2,sigma1,sigma2,x0,x); %1 resident equilibrium
+%equilibrium for 2 residents 
 Nfun = @(x,xb) (K(C1,C2,sigma1,sigma2,x0,x)-alpha1(x,xb,sigma).*K(C1,C2,sigma1,sigma2,x0,xb))./(1-alpha1(x,xb,sigma).^2);
 Nbfun = @(x,xb) (K(C1,C2,sigma1,sigma2,x0,xb)-alpha1(x,xb,sigma).*K(C1,C2,sigma1,sigma2,x0,x))./(1-alpha1(x,xb,sigma).^2);
 
 %Invasion fitness
 f = @(x,y) r*(1-alpha1(y,x,sigma)*K(C1,C2,sigma1,sigma2,x0,x) ...
     /K(C1,C2,sigma1,sigma2,x0,y));
-
+ %invasion fitness for 2 residents
 f2 = @(x,xb,y) r*(1-(alpha1(y,x,sigma)*(K(C1,C2,sigma1,sigma2,x0,x)-alpha1(x,xb,sigma)*K(C1,C2,sigma1,sigma2,x0,xb)) ...
     +alpha1(y,xb,sigma)*(K(C1,C2,sigma1,sigma2,x0,xb)-alpha1(x,xb,sigma)*K(C1,C2,sigma1,sigma2,x0,x))) ...
     /(K(C1,C2,sigma1,sigma2,x0,y)*(1-alpha1(x,xb,sigma)^2)));
@@ -130,6 +131,7 @@ end
 figure;
 C = orderedcolors("gem");
 %{
+%green colour theme for poster
 C=[0.757 0.820 0.122
     0.596 0.788 0.169
     0.431 0.753 0.027
@@ -141,14 +143,16 @@ C=[0.757 0.820 0.122
     0.000 0.380 0.055];
 %}
 hold on;
+%plot trait value by time for each realisation
 for i=1:numberofrealisations
     h=stairs(timeplot(:,i),xplot(:,i),'Color',C(mod(i,7)+1,:));
     k=stairs(timeplot(:,i),xbplot(:,i),'Color',C(mod(i,7)+1,:));
     set(h,'Linewidth',2);
     set(k,'Linewidth',2);
 end
-mean(mean(abs(xplot-xbplot)))
+mean(mean(abs(xplot-xbplot))) %finds mean separation between branches
 hold on;
+%plots singular strategies
 hx1=plot([0,T],x1*ones(1,2),'k-',LineWidth=2);
 hx2=plot([0,T],x2*ones(1,2),'r-.',LineWidth=2);
 hx3=plot([0,T],x3*ones(1,2),'b--',LineWidth=2);
@@ -166,6 +170,7 @@ axis square;
 figure;
 Cb = orderedcolors("glow");
 hold on;
+%plots population density of each branch over time
 for i=1:numberofrealisations
     h=stairs(timeplot(:,i),Nplot(:,i),'Color',C(mod(i,7)+1,:));
     k=stairs(timeplot(:,i),Nbplot(:,i),'Color',Cb(mod(i,7)+1,:));
@@ -186,7 +191,7 @@ axis square;
  vidfile.FrameRate=40;
  open(vidfile);
  f=figure;
- for j = 1:T-3
+ for j = 1:T-3 %because I plot 3 steps at a time
     f.Name = ['Simulation time: t = ', num2str((j-1))];
     %Plotting
     hold on;
@@ -210,7 +215,8 @@ axis square;
     set(gca,'FontSize',20);
     grid on;
     axis square;
-    writeVideo(vidfile, getframe(gcf));
+    writeVideo(vidfile, getframe(gcf));%takes screenshot of the 3 new steps
+    each time
  end
 close(vidfile)
 %}

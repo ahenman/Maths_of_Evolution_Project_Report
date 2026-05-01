@@ -18,6 +18,7 @@ C(2,:)=[];
 C(3,:)=[];
 C(6,:)=[];
 
+%attack and handling
 function A0= A0(A,x0,a,x)
 A0 = 2*A*x.^a./((x.^2/x0).^a+(x0)^a);
 end
@@ -28,6 +29,7 @@ function hij= h(w1,w2,x)
 hij = w1*x.^(-w2);
 end
 
+%parameters
 x0 = 0.1;
 xbar = 5;
 xunder = 0.5;
@@ -88,6 +90,7 @@ function secgrad = secgrad(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
     secgrad=(f*(N0*a10dot+N.*a21dot-h1dot.*(N0*a10+a11.*N).^2)-(1+h1.*(a10*N0+a11.*N)).*a12dot.*N)./(1+h1.*(a10*N0+a11.*N)).^2;
 end
 
+%second derivatives
 function fyy = fyy(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
     a10=A0(Ao,x0,a,x);
     a11=Aij(A,xbar,xunder,b,g,d,p,x,x);
@@ -254,6 +257,7 @@ function dN2dt = dN2dt(N1,N2,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
 end
 
 %{
+%finds second derivatives so I can manually check convergence etc.
 fyystar=fyy(xstar,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
 fxxstar=fxx(xstar,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
 
@@ -266,7 +270,7 @@ for i = 1:size(xstar,1)
 end
 %}
 %% Colour plot to show how many singular strategies there are
-%{
+%
 figure;
 betinv=linspace(1e-2,1,5000); %1/beta values %try starting at a larger value
 N0ran = linspace(1e-6,1000,5000); %N0 values
@@ -277,11 +281,12 @@ for i = 1:height
     for j = 1:width
         b = 1/betinv(i);
         N0 = N0ran(j);
-        sx = @(x) secgrad(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
+        sx = @(x) secgrad(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A); %selection gradient
         inter = find(diff(sign(sx(linspace(1e-2,10,1000)))));%finds location of sign changes in linspace
         H(i,j) = numel(inter); %numer of sign changes
     end
 end
+%plots number of sign changes (number of singular strategies)
 imagesc(N0ran,betinv,H);
 hold on;
 colormap sky
@@ -291,7 +296,7 @@ ylabel("Size range (1/β)",'Interpreter','tex');
 set(gca,'YDir','normal'); %makes axis look normal
 %}
 %% 2 parameter bifurcation diagram for singular strategy classification
-%{
+%
 betinv=linspace(1e-2,1,100); %1/beta values
 N0ran = linspace(1e-6,1000,100); %N0 values
 
@@ -299,20 +304,21 @@ N0ran = linspace(1e-6,1000,100); %N0 values
 bgrid=1./binv;
 %Xstars=cell(size(N0grid));
 H = nan(size(bgrid));
+%to hold values of second derivatives
 FYY1 = nan(size(bgrid)); FYY2 = nan(size(bgrid)); FYY3 = nan(size(bgrid));
 FXX1 = nan(size(bgrid)); FXX2 = nan(size(bgrid)); FXX3 = nan(size(bgrid));
 z=linspace(1e-2,10,1000);
 for k = 1:numel(N0grid)
-    fprintf("k=%.4f\n",100*k/numel(N0grid));
+    fprintf("k=%.4f\n",100*k/numel(N0grid));%progress tracker
     b=bgrid(k);
     N0=N0grid(k);
-    sx = @(x) secgrad(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
-    inter = find(diff(sign(sx(z))));
-    n=numel(inter);
+    sx = @(x) secgrad(x,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A); %selection gradient
+    inter = find(diff(sign(sx(z))));%finds location of sign changes in linspace
+    n=numel(inter);%number of sign changes
     H(k)=n;
     xstar = zeros(1,n);
     for i =1:n
-        xstar(i)=fzero(sx,z(inter(i)));
+        xstar(i)=fzero(sx,z(inter(i)));%finds location of singular strategies by solving s(x)=0
     end
     %xstar = roots(chebfun(sx,[1e-2 10]));
     %Xstars{k}=xstar;                %finding ss for this choice of b and N0
@@ -327,10 +333,11 @@ for k = 1:numel(N0grid)
         FXX3(k)=fxxstar(3);
     end
 end
-ESS1 = FYY1<0;
-ESS2 = FYY2<0;
-ESS3 = FYY3<0; 
+ESS1 = FYY1<0; %1st ss ESS if fyy<0
+ESS2 = FYY2<0; %2nd ss ESS if fyy<0
+ESS3 = FYY3<0; %3rd ss ESS if fyy<0
 
+%tracks existance of ss if fyy and fxx both not undefined
 exists1 = ~isnan(FYY1)&~isnan(FXX1);
 exists2 = ~isnan(FYY2)&~isnan(FXX2);
 exists3 = ~isnan(FYY3)&~isnan(FXX3);
@@ -378,7 +385,8 @@ box on
 %}
 
 %% Create plots side-by-side
-%{
+%plots PIPS for each region, with their ss and making sure they're square
+%
 %I:
 b1=5; N01=500;
 %II
@@ -403,6 +411,7 @@ xstar=roots(chebfun(sx,[1e-6 5]));
 F = fit(X,Y,a,b1,g,d,c,f,p,w1,w2,N01,x0,xbar,xunder,Ao,A);
 
 hold on
+%PIP
 contourf(X,Y,F>0,1,'LineStyle','none','DisplayName','');
 contour(X,Y,F,[0 0],'k','LineWidth',2,'DisplayName',''); %black line for f=0
 colormap(ax1,[1 1 1; 0.7 0.8 0.9]); %blue
@@ -427,6 +436,7 @@ xstar=roots(chebfun(sx,[1e-6 5]));
 F = fit(X,Y,a,b2,g,d,c,f,p,w1,w2,N02,x0,xbar,xunder,Ao,A);
 
 hold on
+%PIP
 contourf(X,Y,F>0,1,'LineStyle','none','DisplayName','');
 contour(X,Y,F,[0 0],'k','LineWidth',2,'DisplayName',''); %black line for f=0
 colormap(ax2,[1 1 1; 0.7 0 0.2]); %red
@@ -534,8 +544,9 @@ xticks(ax5,[0:5]);
 %}
 %}
 
-%% Population density
-
+%% Population density in Bifurcation
+%For ploting dynamics of population density in each region of the
+%bifurcation diagram
 b=1.9;
 N0=500;
 tspan = [0 5000];
@@ -544,10 +555,12 @@ C = orderedcolors("gem12");
 
 x1list=linspace(0.4,2.6,50);
 x2=4.1;
-CA=C(5,:);
-CB=C(3,:);
-CC=C(1,:);
-for i=1:50
+CA=C(5,:); %colour for region A
+CB=C(3,:); %colour for region B
+CC=C(1,:); %colour for region C
+%to see what kind of bifurcation is occuring between A B and C, plot
+%equilibrium while crossing boundaries
+for i=1:20
     x1=x1list(i);
     [~,n] = ode45(@(t,n) odefcn1(n,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [0.2 0.2]);
     nfun=@(N) Nfun(N,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
@@ -559,21 +572,25 @@ for i=1:50
     N2=Nbar(x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);%N1=0
     N1=Nbar(x1,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);%N2=0
     
+    %to observe trajectories moving away from (0,0)
     [t,n1] = ode45(@(t,n1) odefcn1(n1,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [0 0.0001]);
     [~,n2] = ode45(@(t,n2) odefcn1(n2,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [0.0001 0]);
+    %to observe trajectories moving away from (0,N2)
     [~,n3] = ode45(@(t,n3) odefcn1(n3,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [0.0001 N2]);
+    %to observe trajectories moving away from (N1,0)
     [~,n4] = ode45(@(t,n4) odefcn1(n4,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , tspan, [N1 0.0001]);
     
     figure;
     if fit(x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)>0
-        if fit(x2,x1,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)>0
+        if fit(x2,x1,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)>0%if in coexistence region
             C=CA;
-        else
+        else%if in fx1(x2)>0 region
             C=CC;
         end
-    else
+    else %if in fx2(x1)>0 region
         C=CB;
     end
+    %plit N1 by N2
     plot(n1(:,1),n1(:,2),'LineWidth',5,'Color',C);
     hold on;
     plot(n2(:,1),n2(:,2),'LineWidth',5,'Color',C);

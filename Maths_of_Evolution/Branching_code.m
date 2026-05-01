@@ -79,10 +79,11 @@ legend("boxoff");
 
 %Parameters
 r=rand+0.001; %growth rate
-%stable strategies
+%singular strategies
 x2=x0+sqrt(2*sigma1^2*sigma2^2*log(C1*sigma2^2/(C2*sigma1^2))/(sigma2^2-sigma1^2));
 x3=x0-sqrt(2*sigma1^2*sigma2^2*log(C1*sigma2^2/(C2*sigma1^2))/(sigma2^2-sigma1^2));
 
+%showing they align with the stationary points of K(x)
 h1=plot(x0*ones(1,2),[0,1.5],'k-');
 h2=plot(x2*ones(1,2),[0,1.5],'r-.');
 h3=plot(x3*ones(1,2),[0,1.5],'b--');
@@ -152,12 +153,14 @@ X = linspace(1,2*x3-1,500);
 [x,y] = meshgrid(Y, Y);
 F = f(x,y);
 
+%neighbours x' and y'
 a=x3-0.05;
 b=x3+0.05;
 
 figure
 hold on
 
+%PIP
 contourf(x,y,F>0,1,'LineStyle','none')
 contour(x,y,F,[0 0],'k','LineWidth',2) %black line for f=0
 colormap([1 1 1; 0.6 0.9 0.3]); %green for f>0 white for f<0
@@ -165,12 +168,13 @@ xlabel('$\textsf{Resident trait value}$ ($x$)','Interpreter','latex','FontSize',
 ylabel('$\textsf{Mutant trait value}$ ($y$)','Interpreter','latex','FontSize',20);
 %title(['PIP for σ_{α} = ',num2str(sigma)],'Interpreter','tex');
 
+%lines through a,b (x',y) and the singular strategy
 h1=plot(x3*ones(1,2),[x(1),y(end)],'m-',LineWidth=2);
 h2=plot((b)*ones(1,2),[x(1),a],'b:',LineWidth=2);
 h3=plot((a)*ones(1,2),[x(1),b],'r-.',LineWidth=2);
 h4=plot([x(1),a],(b)*ones(1,2),'b:',LineWidth=2);
 h5=plot([x(1),b],(a)*ones(1,2),'r-.',LineWidth=2);
-h6=plot(X,2*x3-X,'--',LineWidth=2);
+h6=plot(X,2*x3-X,'--',LineWidth=2); %mutual invasibility
 
 plot(b,a,'k.','MarkerSize',20);
 plot(a,b,'k.','MarkerSize',20);

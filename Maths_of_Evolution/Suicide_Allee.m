@@ -17,10 +17,12 @@ set(0,'defaultAxesLineWidth',1.5);
 a=3;
 b=2;
 e=linspace(0,6,500);
-%{
+%
 figure;
+%A
 plot(e,(erf(e-a)+1)/2,LineWidth=2);
 hold on;
+%K
 plot(e,(erf(e-b)+1)/2,LineWidth=2);
 xlabel('efficiency (e)')
 legend('A(e)','K(e)');
@@ -33,7 +35,7 @@ K = @(e) (erf(e-b)+1)/2;
 e=3;
 
 Ndot = @(N,e) r*N.*(N/A(e)-1).*(1-N/K(e));
-%{
+%
 figure;
 N=linspace(0,1,500);
 plot(N,Ndot(N,e), LineWidth=2); %plots dN/dt by N
@@ -50,17 +52,19 @@ yline(0);                       %x-axis
 A=xline(A(e),'r--','DisplayName', sprintf('A(e) = %.3f',A(e)));
 K=xline(K(e),'r-.','DisplayName', sprintf('K(e) = %.3f',K(e)));
 legend([A K],'Location','southwest')
-%plot(0,0,'k.',K(e),0,'k.',MarkerSize=25);
-%plot(A(e),0,'ko',MarkerSize=10,LineWidth=1.2);
+%plot(0,0,'k.',K(e),0,'k.',MarkerSize=25); %solid dots at 0 and K
+%plot(A(e),0,'ko',MarkerSize=10,LineWidth=1.2); %hollow at A
 %}
 %% Evolution of resident and mutant population in time
 
 A = @(e) (erf(e-a)+1)/2;
 K = @(e) (erf(e-b)+1)/2;
 
+%Threshold value
 function Afun= Afun(e,a)
 Afun = (erf(e-a)+1)/2;
 end
+%Carrying capacity
 function Kfun= Kfun(e,b)
 Kfun = (erf(e-b)+1)/2;
 end
@@ -98,7 +102,7 @@ plot(t,n(:,1),'-' ,t,n(:,2),'--',LineWidth=2.5);
 xlabel('Time');
 ylabel('Population density');
 legend(sprintf('N_x, x = %.2f',x),sprintf('N_y, y = %.2f',y),'Location','northeast');
-%{
+%
 %% PIP
 
 %Invasion fitness
