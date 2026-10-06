@@ -1,7 +1,7 @@
 %%Alice Henman%%
 %%Chapter 4 Red Queen%%
 
-%%Default graphing layout from Dennis
+%%Default graphing layout from Denis
 set(0,'defaultTextFontName', 'Arial');
 set(0,'defaultaxesfontsize', 20); % 25 for 1X3, 20 for 1X2 figures
 %set(0,'defaultLegendInterpreter','latex');

@@ -1,7 +1,7 @@
 %%Alice Henman%%
 %%Chapter 4 Red Queen%%
 
-%%Default graphing layout from Dennis
+%%Default graphing layout from Denis
 set(0,'defaultTextFontName', 'Arial');
 set(0,'defaultaxesfontsize', 20); % 25 for 1X3, 20 for 1X2 figures
 %set(0,'defaultLegendInterpreter','latex');
@@ -367,7 +367,7 @@ S1 = zeros(size(X1));
 S2 = zeros(size(X2));
 
 %using the limit of dN1/dt dN2/dt to find N to find the selection gradient
-%
+%{
 tspan = [0 4000];
 opts = optimset('Display','off', 'TolX',1e-12, 'TolFun',1e-12, 'MaxIter',2000, 'MaxFunEvals',10000);
 %For upper half plane only
@@ -419,7 +419,7 @@ end
 %}
 
 %% TEP
-%
+%{
 z=logspace(log10(xmin),log10(xmax),5000);%for log scale
 %z=linspace(0,xmax,2000);               %for regular
 [X,Y] = meshgrid(z1, z2);
@@ -443,6 +443,7 @@ F(X>Y)=0;       %shows upper half only
 figure;
 hold on
 % PIP1
+%PIP with x1 as resident, x2 as mutant
 contourf(X,Y,F1>0,1,'LineStyle','none','DisplayName','');
 contour(X,Y,F1,[0 0],'k','LineWidth',2,'DisplayName',''); %black line for f=0
 colormap([1 1 1; 0.7 0.8 0.9]); %blue for f>0 white for f<0
@@ -455,6 +456,7 @@ box on
 figure;
 hold on
 % PIP2
+%PIP with x2 as resident, x1 as mutant
 contourf(X,Y,F2>0,1,'LineStyle','none','DisplayName','');
 contour(X,Y,F2,[0 0],'k','LineWidth',2,'DisplayName',''); %black line for f=0
 colormap([1 1 1; 1 0.9 0.5]); %yellow for f>0 white for f<0
@@ -484,7 +486,7 @@ X22= X2(1:step:end,1:step:end);
 S11=S1(1:step:end,1:step:end);
 S22=S2(1:step:end,1:step:end);
 
-%normalise
+%normalise arrow size
 %r = sqrt((S11./X11).^2+(S22./X22).^2);  %for log scale
 r = sqrt(S11.^2+S22.^2);                 %for regular
 r(r==0) = 1;
@@ -647,12 +649,15 @@ fit2yy(S(1),S(2),a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)
 %% Simulation:
 %
 %Stochastic simulation of trait evolution
+b=1.9;
+N0=500;
 tspan = [0 5000];
 opts = optimset('Display','off');
-numberofrealisations = 7; % number of sample paths
-T = 4000; % end time for simulation
-xstar=roots(chebfun(sx,[1e-6 5]));
-xinitial = xstar(end); %branch point
+numberofrealisations = 5; % number of sample paths
+T = 10000; % end time for simulation
+%xstar=roots(chebfun(sx,[1e-6 5]));
+xinitial = 0.2;%xstar(end); %branch point
+%split population evenly between 2 "branches", but intially have same trait
 N1initial = Nbar(xinitial,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A)/2;
 N2initial = N1initial;
 % matrix to hold trait value at each timestep, for each realisation
@@ -762,6 +767,7 @@ end
 
 %figure;
 C = orderedcolors("gem");
+%{
 hold on;
 for i=1:numberofrealisations %shows trait trajectory in trait space
     %ensures x2>x1
@@ -769,37 +775,81 @@ for i=1:numberofrealisations %shows trait trajectory in trait space
     set(k,'Linewidth',2);
 end
 axis square;
+%}
 figure;
 hold on;
 for i=1:numberofrealisations  %shows branching against time
     stairs(timeplot(:,i),xplot(:,i),'Color',C(mod(i,7)+1,:),'Linewidth',2);
     stairs(timeplot(:,i),xbplot(:,i),'Color',C(mod(i,7)+1,:),'Linewidth',2);
 end
+xlabel('time','FontSize',25);
+ylabel('Resident trait values','FontSize',25);
 %}
+
+%% Red Queen video
+%
+ vidfile = VideoWriter('RQloop(2).mp4','MPEG-4');
+ vidfile.FrameRate=40;
+ open(vidfile);
+ f=figure;
+
+ ax = axes(f);
+ hold(ax,'on');
+ grid(ax,'on');
+ axis(ax,'square');
+ xlabel(ax,'time','FontSize',25);
+ ylabel(ax,'Resident trait values','FontSize',25);
+
+ h1 = gobjects(numberofrealisations,1);
+ h2 = gobjects(numberofrealisations,1);
+
+ for i = 1:numberofrealisations
+    col = C(mod(i,7)+1,:);
+    h1(i) = stairs(ax,nan,nan,'Color',col,'LineWidth',2);
+    h2(i) = stairs(ax,nan,nan,'Color',col,'LineWidth',2);
+ end
+
+ xlim(ax,[0 10000]);
+ ylim(ax,[0 5]);
+
+ for j = 1:4:T-3   % use 1:T-3 if you really want every single step
+    f.Name = ['Simulation time: t = ', num2str(j-1)];
+
+    for i = 1:numberofrealisations
+        set(h1(i), 'XData', timeplot(1:j+4,i), 'YData', xplot(1:j+4,i));
+        set(h2(i), 'XData', timeplot(1:j+4,i), 'YData', xbplot(1:j+4,i));
+    end
+
+    writeVideo(vidfile, getframe(f));
+ end
+
+ close(vidfile);
+%}
+
 %Alternatively the determinsitic simulation of trait evolution using the
 %% canonical equation
-%
+%{
 function ddt = odefcn2(X,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A,opts)
-x1=X(1);
-x2=X(2);
-%finds equilibrium
-nfun=@(N) Nfun(N,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
-[~,n] = ode45(@(t,n) odefcn1(n,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , [0 1000], [0.2 0.2]);
-Nstar = fsolve(nfun,[n(end,1) n(end,2)],opts);
-N1 = Nstar(1);
-N2 = Nstar(2);
-%checks if its reasonable
-if N1<1e-200||N2<1e-200
-    fprintf("N1=%f\n",N1);
-    fprintf("N2=%f\n",N2);
-    fprintf("x1=%.2f\n",x1);
-    fprintf("x2=%f\n",x2);
-    ddt=zeros(2,1);
-    return
-end
-ddt = zeros(2,1); % Initialize the derivative vector
-    ddt(1) = N1*secgrad1(x1,x2,a,b,g,d,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A,N1,N2); %
-    ddt(2) = N2*secgrad2(x1,x2,a,b,g,d,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A,N1,N2); %
+    x1=X(1);
+    x2=X(2);
+    %finds equilibrium
+    nfun=@(N) Nfun(N,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A);
+    [~,n] = ode45(@(t,n) odefcn1(n,x1,x2,a,b,g,d,c,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A) , [0 1000], [0.2 0.2]);
+    Nstar = fsolve(nfun,[n(end,1) n(end,2)],opts);
+    N1 = Nstar(1);
+    N2 = Nstar(2);
+    %checks if its reasonable
+    if N1<1e-200||N2<1e-200
+        fprintf("N1=%f\n",N1);
+        fprintf("N2=%f\n",N2);
+        fprintf("x1=%.2f\n",x1);
+        fprintf("x2=%f\n",x2);
+        ddt=zeros(2,1);
+        return
+    end
+    ddt = zeros(2,1); % Initialize the derivative vector
+        ddt(1) = N1*secgrad1(x1,x2,a,b,g,d,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A,N1,N2); %
+        ddt(2) = N2*secgrad2(x1,x2,a,b,g,d,f,p,w1,w2,N0,x0,xbar,xunder,Ao,A,N1,N2); %
 end
 
 %plots trajectory in trait space
